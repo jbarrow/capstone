@@ -1,0 +1,8 @@
+downloads/
+*.txt
+*.mid
+*.wav
+
+.DS_Store
+
+*~
