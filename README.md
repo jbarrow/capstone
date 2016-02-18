@@ -17,7 +17,7 @@ Running it without --all will choose a random subset of the code to download.
 
 ## Preprocessing
 
-The preprocessing is not yet working standalone, but it is present in the iPython notebook, called "loader.iPynb", if you are interested in looking at that.
+The preprocessing is not yet working standalone over the whole dataset. To get a good idea of how it works, look in the iPython notebook, called "loader.iPynb". Currently, we can preprocess a single song at a time, but have yet to correlate the outputs with the inputs (and thus have all the elements needed to train our RNN).
 
 ## TODO:
 
