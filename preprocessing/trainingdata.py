@@ -23,13 +23,14 @@ class TrainingData:
     def transform(self):
         framesz = 0.050
         pad = 5
-        self.X = stft(self.x[:, 0], self.rate, framesz, hop=0.025, pad=pad)
+        self.data = stft(self.x[:, 0], self.rate, framesz, hop=0.025, pad=pad)
         self.F = np.fft.rfftfreq(int(self.rate*framesz*(2*pad+1)), 1.0/self.rate)
         # clean up the variables we will no longer be using
         del self.x
 
     def preprocess(self, filterbank):
         count = np.shape(self.X)[0]
-        self.data = np.zeros((count, filterbank.width))
+        self.X = np.zeros((count, filterbank.width))
         for i in range(count):
-            self.data[i, :] = filterbank.apply_filterbank(self.X[i, :])
+            self.X[i, :] = filterbank.apply_filterbank(self.data[i, :])
+        del self.data
