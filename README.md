@@ -21,7 +21,7 @@ The preprocessing is not yet working standalone, but it is present in the iPytho
 
 ## TODO:
 
-[] Standalone preprocessing
-[] Aligning notes with training data
-[] TensorFlow RNN
-[] TIMIT data and preprocessing
+- [ ] Standalone preprocessing
+- [ ] Aligning notes with training data
+- [ ] TensorFlow RNN
+- [ ] TIMIT data and preprocessing
