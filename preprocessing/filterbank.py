@@ -7,9 +7,11 @@ def compute_freq(f0, count):
     return f0 * math.pow(math.pow(2, 1.0/12.0), count)
 
 class FilterBank:
-    def __init__(self, fftfreqs):
+    def __init__(self, sample_rate, window_size, padding):
+        bins = (sample_rate * window_size * (2 * padding + 1)) / 2
+        res = 0.5 * sample_rate / bins
         self.bands = []
-        self.freqs = fftfreqs
+        self.freqs = np.array([res*i for i in range(int(round(bins)))])
         self.diff = self.freqs[1]-self.freqs[0]
         self.offset = self.freqs[0]/self.diff
     
