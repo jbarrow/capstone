@@ -22,6 +22,6 @@ The preprocessing is not yet working standalone over the whole dataset. To get a
 ## TODO:
 
 - [ ] Standalone preprocessing
-- [ ] Aligning notes with training data
+- [x] Aligning notes with training data
 - [ ] TensorFlow RNN
 - [ ] TIMIT data and preprocessing
