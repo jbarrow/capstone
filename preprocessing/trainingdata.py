@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import scipy
 import scipy.io.wavfile
+import math
 
 def stft(x, fs, framesz, hop, pad=0):
     framesamp = int(framesz*fs)
@@ -19,18 +20,28 @@ class TrainingData:
         # read in the training data
         self.notes = pd.read_csv(file_name+'.txt', sep='\t')
         self.notes.columns = ['onset_time', 'offset_time', 'midi_pitch']
+        # some key constants
+        self.window_size = 0.050
+        self.hop_size = 0.025
+        self.pad = 5
+        # take the audio transformation
+        self.transform()
         
     def transform(self):
-        framesz = 0.050
-        pad = 5
-        self.data = stft(self.x[:, 0], self.rate, framesz, hop=0.025, pad=pad)
-        self.F = np.fft.rfftfreq(int(self.rate*framesz*(2*pad+1)), 1.0/self.rate)
-        # clean up the variables we will no longer be using
-        del self.x
+        self.data = stft(self.x[:, 0], self.rate, self.window_size, self.hop_size, self.pad)
+        self.F = np.fft.rfftfreq(int(self.rate*self.window_size*(2*self.pad+1)), 1.0/self.rate)
 
     def preprocess(self, filterbank):
-        count = np.shape(self.X)[0]
+        count = np.shape(self.data)[0]
         self.X = np.zeros((count, filterbank.width))
         for i in range(count):
             self.X[i, :] = filterbank.apply_filterbank(self.data[i, :])
-        del self.data
+
+    def label(self):
+        count = np.shape(self.X)[0]
+        self.Y = np.zeros((count, 88))
+        factor = (self.window_size - self.hop_size)
+        for i, row in self.notes.iterrows():
+            onset_index = int(math.floor(row.onset_time / factor + self.hop_size))
+            offset_index = int(round(row.offset_time / factor + self.hop_size))
+            self.Y[onset_index:offset_index, int(row.midi_pitch-21)] = 1.0

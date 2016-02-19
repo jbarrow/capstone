@@ -14,3 +14,5 @@ f.construct_bands(440.0, 20, 20)
 print "Preprocessing with constructed filterbank."
 audio.preprocess(f)
 print "Resulting shape:", np.shape(audio.data)
+audio.label()
+print audio.Y[0:100, :].T
