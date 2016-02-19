@@ -4,15 +4,9 @@ from preprocessing.band import Band
 
 import numpy as np
 
-print "Loading training data, MAPS_MUS-alb_se7_AkPnBsdf."
-audio = TrainingData('data/MUS/MAPS_MUS-alb_se7_AkPnBsdf')
-print "Windowing and running STFT."
-audio.transform()
 print "Constructing filterbank."
-f = FilterBank(audio.F)
+f = FilterBank(44100, 0.05, 5)
 f.construct_bands(440.0, 20, 20)
-print "Preprocessing with constructed filterbank."
-audio.preprocess(f)
-print "Resulting shape:", np.shape(audio.data)
-audio.label()
-print audio.Y[0:100, :].T
+
+print "Loading and preprocessing training data, MAPS_MUS-alb_se7_AkPnBsdf."
+audio = TrainingData('data/MUS/MAPS_MUS-alb_se7_AkPnBsdf', f)
