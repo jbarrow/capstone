@@ -14,6 +14,7 @@ def stft(x, fs, framesz, hop, pad=0):
 
 class TrainingData:
     def __init__(self, file_name, filterbank, window_size=0.05, hop_size=0.025, pad=5):
+        self.file_base = file_name
         # read in the audio of the file
         self.rate, self.x = scipy.io.wavfile.read(file_name+'.wav')
         self.duration = len(self.x) / self.rate
