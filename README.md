@@ -29,7 +29,7 @@ The data is preprocessed recursively from a top-level directory. To get an idea 
 
 ```
   python preprocess.py [TOP_LEVEL_DIRECTORY]
-  ```
+```
 
 Give it the name of a top-level directory (e.g. data/MUS) and let it work (for a while, preprocessing each piece of music takes some time). The resulting TrainingData is saved in a `.pkl` file in its original location, with its original name.
 
@@ -41,10 +41,21 @@ The steps we take for preprocessing are:
 - Run a semitone filterbank over the data, saved in the `X` variable of the class
 - Compute a target output matrix, saved in the `Y` variable of the class
 
+## Training
+
+For training, we are using Theano to construct an LSTM network.
+
 ## TODO:
 
+- [ ] Theano RNN
+- [ ] Track progress with paper
+
+### MAPS
+- [x] Download specific files from MAPS, for consistency
 - [x] Standalone preprocessing
 - [x] Aligning notes with training data
-- [ ] Theano RNN
-- [ ] TIMIT data and preprocessing
-- [x] Download specific files from MAPS, for consistency
+
+### TIMIT
+- [ ] Get access to TIMIT
+- [ ] TIMIT Downloader
+- [ ] TIMIT Preprocessing
