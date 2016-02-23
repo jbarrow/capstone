@@ -21,7 +21,7 @@ To download and organize the MAPS database of Piano music. Note that you should 
 2. A lot of time (to download and unpack 60-80GB)
 3. A really good internet connection
 
-Running it without --all will choose a random subset of the code to download. 
+Running it without --all, or with --new will choose a random subset of the code to download. 
 
 ## Preprocessing
 
