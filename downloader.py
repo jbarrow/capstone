@@ -27,7 +27,7 @@ def in_downloads(downloaded, filename):
         if f == filename: return True
     return False
 
-def download(downloaded, all_files=False):
+def download(downloaded, all_files=False, filename=None):
     # Connect to the MAPS ftp server over FTPS
     ftps = FTP_TLS('ftps.tsi.telecom-paristech.fr')
     print 'Connected to MAPS FTP over TLS.'
@@ -39,6 +39,13 @@ def download(downloaded, all_files=False):
 
     ftps.retrlines('LIST *.zip', get_file_list)
 
+    if filename is not None:
+        if not in_downloads(files, filename): print 'File not found' ; return
+        print 'Downloading', filename
+        res = ftps.retrbinary('RETR '+filename, open('./downloads/'+filename, 'wb').write)
+        ftps.close()
+        return [(filename, 0)]
+    
     if len(files) == len(downloaded):
         print "All MAPS files downloaded. Continuing."
         return
@@ -48,7 +55,7 @@ def download(downloaded, all_files=False):
             if not in_downloads(downloaded, f):
                 print "Downloading", f, "of size", s, "bytes"
                 res = ftps.retrbinary('RETR '+f, open('./downloads/'+f, 'wb').write)
-    else:
+    elif filename is None:
         f, s = random.choice(files)
         while in_downloads(downloaded, f):
             f, s = random.choice(files)
@@ -73,8 +80,11 @@ def merge_directories(downloaded):
 if __name__ == '__main__':
     # Set up our command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--all', dest='download_all', action='store_true')
-    parser.add_argument('--new', dest='download_new', action='store_true')
+    parser.add_argument('--all', dest='download_all', action='store_true',
+                        help='Boolean flag for downloading all of MAPS')
+    parser.add_argument('--new', dest='download_new', action='store_true',
+                        help='Boolean flag for downloading new files')
+    parser.add_argument('-f', dest='filename', help='Name a specific file to download')
     
     args = parser.parse_args()
     allf = args.download_all
@@ -82,9 +92,13 @@ if __name__ == '__main__':
 
     # Check for previous downloads
     downloaded = get_downloaded_list()
-    if len(downloaded) > 0 and not newf: print 'Detected MAPS files download.'
-    else: downloaded = download(downloaded, allf)
     
+    if args.filename is not None:
+        download([], filename=args.filename)
+    else:
+        if len(downloaded) > 0 and not newf: print 'Detected MAPS files download.'
+        else: downloaded = download(downloaded, allf)
+
     # Unzip all our downloaded files
     for d, _ in downloaded:
         key = d.split('_')[1]

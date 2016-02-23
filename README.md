@@ -27,3 +27,4 @@ The preprocessing is not yet working standalone over the whole dataset. To get a
 - [x] Aligning notes with training data
 - [ ] Theano RNN
 - [ ] TIMIT data and preprocessing
+- [x] Download specific files from MAPS, for consistency
