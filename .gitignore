@@ -2,8 +2,10 @@
 *.txt
 *.mid
 *.wav
+*.pkl
 
 .DS_Store
+.#*
 
 *~
 

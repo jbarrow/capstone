@@ -25,11 +25,25 @@ Running it without --all or -f, or with --new if you already have a section down
 
 ## Preprocessing
 
-The preprocessing is not yet working standalone over the whole dataset. To get a good idea of how it works, look in the iPython notebook, called "loader.iPynb". Currently, we can preprocess a single song at a time, but have yet to correlate the outputs with the inputs (and thus have all the elements needed to train our RNN).
+The data is preprocessed recursively from a top-level directory. To get an idea of the preprocessing steps we take, check out the "Preprocessing_Notebook.iPynb" in the repository. To simply use the preprocessor, use the python command:
+
+```
+  python preprocess.py [TOP_LEVEL_DIRECTORY]
+  ```
+
+Give it the name of a top-level directory (e.g. data/MUS) and let it work (for a while, preprocessing each piece of music takes some time). The resulting TrainingData is saved in a `.pkl` file in its original location, with its original name.
+
+The steps we take for preprocessing are:
+
+- Window the data into 50ms windows, using a Hanning Window and an overlap of 25ms
+- Pad the audio data to increase our spectral resolution (pad size controlled in code)
+- Take the STFT of the data
+- Run a semitone filterbank over the data, saved in the `X` variable of the class
+- Compute a target output matrix, saved in the `Y` variable of the class
 
 ## TODO:
 
-- [ ] Standalone preprocessing
+- [x] Standalone preprocessing
 - [x] Aligning notes with training data
 - [ ] Theano RNN
 - [ ] TIMIT data and preprocessing

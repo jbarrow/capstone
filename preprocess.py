@@ -1,9 +1,23 @@
 from preprocessing.trainingdata import TrainingData
 from preprocessing.filterbank import FilterBank
-from preprocessing.band import Band
 
+import cPickle as pickle
 import numpy as np
 import argparse
+import os
+
+def load_directory(directory, f):
+    for item in os.listdir(directory):
+        if item[0] != '.':
+            current = directory + '/' + item
+            if os.path.isdir(current):
+                load_directory(current, f)
+            if current[-4:] == '.wav':
+                current = current[:-4]
+                print "Loading and preprocessing training data,", current
+                audio = TrainingData(current, f)
+                pickle.dump(audio, open(current+'.pkl', 'wb'))
+                del audio
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -16,5 +30,4 @@ if __name__ == '__main__':
     f = FilterBank(44100, 0.05, 5)
     f.construct_bands(440.0, 20, 20)
 
-    print "Loading and preprocessing training data, MAPS_MUS-alb_se7_AkPnBsdf."
-    audio = TrainingData('data/MUS/MAPS_MUS-alb_se7_AkPnBsdf', f)
+    load_directory(rdir, f)

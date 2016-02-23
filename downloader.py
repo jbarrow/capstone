@@ -109,7 +109,7 @@ if __name__ == '__main__':
     
     # Check if data/ directory exists
     if not os.path.isdir('./data'): print 'Creating data/ directory.' ; os.makedirs('./data')
-    else: print 'Directory data/ alread exists.'
+    else: print 'Directory data/ already exists.'
             
     # Fix merge all the directories
     merge_directories(downloaded)
