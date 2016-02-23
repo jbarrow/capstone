@@ -5,7 +5,7 @@
 To get started running this project, run:
 
 ```
-  python downloader.py [--all|--new|--help|-f [FILENAME]]
+  python download.py [--all|--new|-h|-f [FILENAME]]
 ```
 
 Using the `--new` flag will force the download of a new section of the MAPS database not already present on your system, but only one. Use the `--all` flag to download *all* sections of the MAPS database not already on your system.
@@ -13,7 +13,7 @@ Using the `--new` flag will force the download of a new section of the MAPS data
 Additionally, if you already know which section of the database you would like do download, you can specify that with the `-f` flag, as in:
 
 ```
-  python downloader.py -f MAPS_SptkBGCl_1.zip
+  python download.py -f MAPS_SptkBGCl_1.zip
 ```
 
 To download and organize the MAPS database of Piano music. Note that you should not use the `--all` flag unless you have:
@@ -25,15 +25,15 @@ Running it without --all or -f, or with --new if you already have a section down
 
 ## Preprocessing
 
-The data is preprocessed recursively from a top-level directory. To get an idea of the preprocessing steps we take, check out the "Preprocessing_Notebook.iPynb" in the repository. To simply use the preprocessor, use the python command:
+The data is preprocessed recursively from a top-level directory. To use the preprocessor, run the python command:
 
 ```
-  python preprocess.py [TOP_LEVEL_DIRECTORY]
+  python preprocess.py [TOP_LEVEL_DIRECTORY|-h]
 ```
 
 Give it the name of a top-level directory (e.g. data/MUS) and let it work (for a while, preprocessing each piece of music takes some time). The resulting TrainingData is saved in a `.pkl` file in its original location, with its original name.
 
-The steps we take for preprocessing are:
+To get an idea of the preprocessing steps we take, check out the `notebooks/Preprocessing_Notebook.iPynb` in the repository. *Note, however,* that the notebook *does not* have a consistent API with the actual code, it simply provides an idea of the steps we take in preprocessing. The steps we take for preprocessing are:
 
 - Window the data into 50ms windows, using a Hanning Window and an overlap of 25ms
 - Pad the audio data to increase our spectral resolution (pad size controlled in code)
@@ -43,10 +43,15 @@ The steps we take for preprocessing are:
 
 ## Training
 
-For training, we are using Theano to construct an LSTM network.
+For training, we are using Theano to construct an LSTM network. You can view the steps we take in the `notebooks/Training_Notebook.iPynb` file.
+
+```
+  python train.py [-h]
+```
 
 ## TODO:
 
+- [x] Loading training data
 - [ ] Theano RNN
 - [ ] Track progress with paper
 
