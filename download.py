@@ -27,12 +27,12 @@ def in_downloads(downloaded, filename):
         if f == filename: return True
     return False
 
-def download(downloaded, all_files=False, filename=None):
+def download(downloaded, user, passwd, all_files=False, filename=None):
     # Connect to the MAPS ftp server over FTPS
     ftps = FTP_TLS('ftps.tsi.telecom-paristech.fr')
     print 'Connected to MAPS FTP over TLS.'
     try:
-        ftps.login(user='jdb7hw@virginia.edu', passwd='tFcvL2CA')
+        ftps.login(user=user, passwd=passwd)
         ftps.cwd('maps')
     except error_perm:
         print "Incorrect username/password" ; quit
@@ -85,19 +85,23 @@ if __name__ == '__main__':
     parser.add_argument('--new', dest='download_new', action='store_true',
                         help='Boolean flag for downloading new files')
     parser.add_argument('-f', dest='filename', help='Name a specific file to download')
+    parser.add_argument('-u', dest='user', help='Username for MAPS database.')
+    parser.add_argument('-p', dest='passwd', help='Password for MAPS database.')
     
     args = parser.parse_args()
     allf = args.download_all
     newf = args.download_new
+    u = args.user
+    p = args.passwd
 
     # Check for previous downloads
     downloaded = get_downloaded_list()
     
     if args.filename is not None:
-        download([], filename=args.filename)
+        download([], u, p, filename=args.filename)
     else:
         if len(downloaded) > 0 and not newf: print 'Detected MAPS files download.'
-        else: downloaded = download(downloaded, allf)
+        else: downloaded = download(downloaded, u, p, allf)
 
     # Unzip all our downloaded files
     for d, _ in downloaded:
