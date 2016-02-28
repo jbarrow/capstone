@@ -2,7 +2,33 @@
 
 Welcome to the senior design project of Joe Barrow and Harang Ju, 4th year CS majors at the University of Virginia. Our research is focused on the similarities between music and pronunciation training. This repository, written for Python 2.7, contains all our code, results, and our technical paper.
 
-## Downloading the Data
+## Getting started
+
+### Jupyter Notebook Setup
+
+System Requirements:
+
+- Python, pip
+- (Optional) [virtualenv](https://virtualenv.pypa.io/en/latest/)
+
+To start the [Jupyter Notebook](https://jupyter.org/index.html):
+
+```bash
+# Clone the repo
+git clone https://github.com/jbarrow/capstone.git
+cd capstone
+
+# Create a new virtual environment (optional, but recommended)
+virtualenv venv
+source venv/bin/activate # Always run this before starting the notebook
+
+# Install requirements
+pip install -r requirements.txt
+# Start the notebook server
+jupyter notebook
+```
+
+### Downloading the Data
 
 The very first step is to [contact the nice people in charge of the MAPS database](http://www.tsi.telecom-paristech.fr/aao/en/2010/07/08/maps-database-a-piano-database-for-multipitch-estimation-and-automatic-transcription-of-music/) in order to get access to the data. Once they have sent you a username and password for their FTP server, you can move on. 
 
