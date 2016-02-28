@@ -11,3 +11,4 @@
 
 .ipynb_checkpoints/
 *.pyc
+venv
