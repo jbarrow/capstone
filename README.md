@@ -6,6 +6,8 @@ Welcome to the senior design project of Joe Barrow and Harang Ju, 4th year CS ma
 
 ### Jupyter Notebook Setup
 
+To get an idea of how the code works, simplified versions are provided in Jupyter (iPython) notebooks in the `notebooks/` folder. These can be viewed in GitHub's file viewer, or interacted with if you have iPython (with Python 2.7) installed on your system.
+
 System Requirements:
 
 - Python, pip
@@ -73,16 +75,25 @@ To get an idea of the preprocessing steps we take, check out the `notebooks/Prep
 
 ## Training
 
+### RNN
+
 For training, we are using Theano to construct an LSTM network. You can view the steps we take in the `notebooks/Training_Notebook.iPynb` file.
 
 ```
   python train.py [-h]
 ```
 
+### HMM
+
+## Testing and Novel Data
+
+The ultimate goal of this project is to run in real time with microphone input.
+
 ## TODO:
 
 - [x] Loading training data
 - [ ] Theano RNN
+- [ ] Arbitrary Mistake HMM Model
 - [ ] Track progress with paper
 
 ### MAPS
