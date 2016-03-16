@@ -28,6 +28,10 @@ if __name__ == '__main__':
 
     print "Constructing filterbank."
     f = FilterBank(44100, 0.05, 5)
-    f.construct_bands(440.0, 20, 20)
+    # num_notes_below = 20
+    # num_notes_above = 20
+    num_notes_below = 48
+    num_notes_above = 39
+    f.construct_bands(440.0, num_notes_below, num_notes_above)
 
     load_directory(rdir, f)

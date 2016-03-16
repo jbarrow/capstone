@@ -32,5 +32,5 @@ class FilterBank:
     def apply_filterbank(self, freqs):
         values = np.zeros(len(self.bands))
         for i, band in enumerate(self.bands):
-            values[i] = band.values.dot(freqs[band.low:band.high+1]) / band.total
+            values[i-11] = band.values.dot(freqs[band.low:band.high+1]) / band.total
         return values
