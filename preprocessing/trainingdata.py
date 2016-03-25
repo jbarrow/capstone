@@ -13,7 +13,7 @@ def stft(x, fs, framesz, hop, pad=0):
     return X
 
 class TrainingData:
-    def __init__(self, file_name, filterbank, window_size=0.05, hop_size=0.025, pad=5):
+    def __init__(self, file_name, filterbank=None, window_size=0.1, hop_size=0.025, pad=1):
         self.file_base = file_name
         # read in the audio of the file
         self.rate, self.x = scipy.io.wavfile.read(file_name+'.wav')
@@ -33,18 +33,18 @@ class TrainingData:
         
     def transform(self):
         self.data = stft(self.x[:, 0], self.rate, self.window_size, self.hop_size, self.pad)
-        #self.F = np.fft.rfftfreq(int(self.rate*self.window_size*(2*self.pad+1)), 1.0/self.rate)
 
     def preprocess(self, filterbank):
         count = np.shape(self.data)[0]
-        self.X = np.zeros((count, filterbank.width))
-        for i in range(count):
-            self.X[i, :] = filterbank.apply_filterbank(self.data[i, :])
+        #self.X = np.zeros((count, filterbank.width))
+        #for i in range(count):
+        #    self.X[i, :] = filterbank.apply_filterbank(self.data[i, :])
+        self.X = self.data
 
     def label(self):
         count = np.shape(self.X)[0]
         self.Y = np.zeros((count, 88))
-        factor = (self.window_size - self.hop_size)
+        factor = self.hop_size
         for i, row in self.notes.iterrows():
             onset_index = int(math.floor(row.onset_time / factor + self.hop_size))
             offset_index = int(round(row.offset_time / factor + self.hop_size))
