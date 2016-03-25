@@ -12,13 +12,14 @@ class Stairway:
     transforms the data in a very stream-type environment.
     """
 
-    def __init__(self):
+    def __init__(self, verbose=True):
         """
         Create our Stairway instance. For now, we assume that the user
         wants to load the data from a file, so the type of loader 
         (after currying) is FilePath -> Data.
         """
         self.graph, self.stairs = {}, {}
+        self.verbose = verbose
 
     def step(self, name, deps, f, *args):
         """
@@ -53,7 +54,7 @@ class Stairway:
         over all inputs.
         """
         for s in self.slist:
-            print "Running step:", s.name
+            if self.verbose: print "Running step:", s.name
             if s.name in kwargs:
                 s.args = tuple([kwargs[s.name]])
             s.run(self.graph[s])
