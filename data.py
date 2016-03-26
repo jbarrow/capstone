@@ -1,36 +1,7 @@
-
-"""
-download_maps(dir, all=False)  # ftp
-download_timit(dir, all=False) # ftp
-download_gmuas(dir) # dropbox
-
-dataset = load_maps(specify subset of maps, split)
-dataset = load_timit(specify subset of timit, split)
-dataset = load_gmuas(specify subset of gmuas, split)
-
-dataset.save(filename)
-dataset = load_dataset(filename)
-
-dataset.train.X, dataset.train.y
-dataset.test.X, dataset.test.y
-dataset.validation.X, dataset.validation.y
-
-
-"""
-
-import scipy.io.wavfile
-import pandas as pd
-import numpy as np
-import math
-import os
-
 import cPickle as pickle
 import random
 
 from collections import namedtuple
-
-from stairway import Stairway, Escalator
-from stairway.steps import stft, r_load_pairs, print_data
 
 DataSet = namedtuple('DataSet', ['X', 'y'])
 
