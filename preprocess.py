@@ -21,6 +21,20 @@ def label(labels, data, hop_size):
         y[onset_index:offset_index, int(row.midi_pitch-21)] = 1.0
     return y
 
+def pad_sequences(data, max_length):
+    X = np.zeros((len(data), max_length, data[0][0].shape[1]))
+    y = np.zeros((len(data), max_length, data[0][1].shape[1]))
+
+    for i, d in enumerate(data):
+        X[i, max_length-len(d[0]):, :] = d[0]
+        y[i, max_length-len(d[1]):, :] = d[1]
+        
+    return X, y
+
+def rmax(x, data):
+    if data[0].shape[0] > x: return data[0].shape[0]
+    return x
+    
 frame_size = 0.1
 hop_size = 0.025
 
@@ -31,9 +45,12 @@ s = Stairway(False)\
     .step('label', ['stft', 'load_label'], label, hop_size)\
     .step('output', ['stft', 'label'], DataSet)
 
-e = Escalator(r_load_pairs, ['directory', 'master', 'exts'])
-e.mapper(s, ['audio_file', 'label_file']).graph\
-    .step('get_container', ['map'], DataContainer)\
+e = Escalator(r_load_pairs, ['directory', 'master', 'exts'])\
+    .mapper(s, ['audio_file', 'label_file'])\
+    .reducer(rmax, 0, name='reduce_max')
+e.graph\
+    .step('pad', ['map', 'reduce_max'], pad_sequences)\
+    .step('get_container', ['pad'], DataContainer)\
     .step('save', ['get_container'], lambda x: x.save('re.pkl'))
 
 data = e.start(directory='./data/ISOL/RE', master='.txt', exts=['.wav', '.txt'])

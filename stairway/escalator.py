@@ -6,7 +6,8 @@ def fmap(data, f, args):
         return [f(**dict(zip(args, d))) for d in data]
     return [f(d) for d in data]
 
-def freduce(data, f): return data
+def freduce(data, f, initializer):
+    return reduce(f, data, initializer)
 
 class Escalator:
     """
@@ -22,10 +23,9 @@ class Escalator:
         self.graph.step('map', ['loader'], fmap, stairway.process, args)
         return self
 
-    def reducer(self, r):
-        self.graph.step('reduce', ['map'], freduce, r)
+    def reducer(self, r, initializer, name='reduce'):
+        self.graph.step(name, ['map'], freduce, r, initializer)
         return self
 
     def start(self, **kwargs):
-        self.graph.process(**kwargs)
-    
+        return self.graph.process(**kwargs)
