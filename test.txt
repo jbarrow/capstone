@@ -1,8 +1,0 @@
-from stairway import *
-
-def print_data(d):
-    print d.read()
-
-s = Stairway()
-s.step('open', ['filename'], open).step('print', ['open'], print_data)
-s.process(filename='test.txt')
