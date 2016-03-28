@@ -1,6 +1,7 @@
 import scipy.io.wavfile
 import pandas as pd
 import numpy as np
+import argparse
 import math
 import os
 
@@ -34,23 +35,30 @@ def pad_sequences(data, max_length):
 def rmax(x, data):
     if data[0].shape[0] > x: return data[0].shape[0]
     return x
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dir', dest='recursive_top_dir')
+
+    args = parser.parse_args()
+    rdir = args.recursive_top_dir
     
-frame_size = 0.1
-hop_size = 0.025
+    frame_size = 0.1
+    hop_size = 0.025
 
-s = Stairway(False)\
-    .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
-    .step('load_label', ['label_file'], load_pandas, '\t')\
-    .step('stft', ['load_audio'], stft, frame_size, hop_size)\
-    .step('label', ['stft', 'load_label'], label, hop_size)\
-    .step('output', ['stft', 'label'], DataSet)
+    s = Stairway(False)\
+        .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
+        .step('load_label', ['label_file'], load_pandas, '\t')\
+        .step('stft', ['load_audio'], stft, frame_size, hop_size)\
+        .step('label', ['stft', 'load_label'], label, hop_size)\
+        .step('output', ['stft', 'label'], DataSet)
 
-e = Escalator(r_load_pairs, ['directory', 'master', 'exts'])\
-    .mapper(s, ['audio_file', 'label_file'])\
-    .reducer(rmax, 0, name='reduce_max')
-e.graph\
-    .step('pad', ['map', 'reduce_max'], pad_sequences)\
-    .step('get_container', ['pad'], DataContainer)\
-    .step('save', ['get_container'], lambda x: x.save('re.pkl'))
+    e = Escalator(r_load_pairs, ['directory', 'master', 'exts'])\
+        .mapper(s, ['audio_file', 'label_file'])\
+        .reducer(rmax, 0, name='reduce_max')
+    e.graph\
+        .step('pad', ['map', 'reduce_max'], pad_sequences)\
+        .step('get_container', ['pad'], DataContainer)\
+        .step('save', ['get_container'], lambda x: x.save('data.pkl'))
 
-data = e.start(directory='./data/ISOL/RE', master='.txt', exts=['.wav', '.txt'])
+    data = e.start(directory=rdir, master='.txt', exts=['.wav', '.txt'])

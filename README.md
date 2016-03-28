@@ -4,6 +4,14 @@ Welcome to the senior design project of Joe Barrow and Harang Ju, 4th year CS ma
 
 ## Getting started
 
+To download all the data and run the entire model, just type:
+
+```
+./build.sh
+```
+
+But __BEWARE__: this will take a _looooong_ time and a _loooooot_ of space.
+
 ### Jupyter Notebook Setup
 
 To get an idea of how the code works, simplified versions are provided in Jupyter (iPython) notebooks in the `notebooks/` folder. These can be viewed in GitHub's file viewer, or interacted with if you have iPython (with Python 2.7) installed on your system.
@@ -92,7 +100,7 @@ The ultimate goal of this project is to run in real time with microphone input.
 ## TODO:
 
 - [x] Loading training data
-- [ ] Theano RNN
+- [x] Theano RNN
 - [ ] Arbitrary Mistake HMM Model
 - [ ] Track progress with paper
 
