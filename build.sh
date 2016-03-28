@@ -16,4 +16,4 @@ device = gpu
 fastmath = True" > ~/.theanorc
 
 # We have to use `sudo` so Theano will use the GPU.
-sudo python train.py
+python train.py

@@ -8,7 +8,7 @@ from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 
 print "Loading data..."
-data = load_container('./data.pkl')
+data = load_container('./re.pkl')
 
 print "Splitting data..."
 data.split()
