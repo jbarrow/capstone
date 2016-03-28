@@ -2,6 +2,8 @@
 *.mid
 *.wav
 *.pkl
+*.h5
+*.json
 
 .DS_Store
 .#*
