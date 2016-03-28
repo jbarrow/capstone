@@ -18,10 +18,10 @@ class DataContainer:
         count = len(self.X)
         shuffled = np.random.permutation(count)
         
-        ind = map(round, [train*count, test*count, validation*count])
-        ind[1] += ind[0] ; ind[2] += ind[1]
+        ind = map(int, map(round, [train*count, test*count, validation*count]))
+        ind[1] += ind[0] ; ind[2] = count+1
         
-        self.train, self.test, self.validation = np.split(shuffled, ind)
+        self.train, self.test, self.validation, nix = np.split(shuffled, ind)
 
 def load_container(filename):
     return pickle.load(open(filename, 'rb'))
