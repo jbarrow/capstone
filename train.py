@@ -12,6 +12,7 @@ batch_size=33
 
 print "Loading data..."
 data = DataContainer('re.h5')
+data.save('model_split.pkl')
 
 print "Assembling model..."
 model = Sequential()
@@ -25,7 +26,7 @@ model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 
 print "Fitting model..."
 for e in range(nb_epoch):
-    print("epoch %d" % e)
+    print("Epoch: {0}/{1}".format(e, nb_epoch))
     for X_train, Y_train in data.minibatches(batch_size):
         model.fit(X_batch, Y_batch, batch_size=batch_size, nb_epoch=1)
 

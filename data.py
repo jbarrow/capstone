@@ -31,3 +31,6 @@ class DataContainer:
 
     def close(self):
         self.f.close()
+
+    def save(self, filename):
+        pickle.dump(self, open(filname, 'wb'))
