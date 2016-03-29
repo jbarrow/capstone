@@ -40,7 +40,6 @@ def rmax(x, data):
 
 def incremental_save(count_and_filename, data):
     cnt, filename = count_and_filename
-    print cnt
     if cnt == 0:
         with h5py.File(filename, 'w') as hf:
             hf.create_dataset('X', data=data[0], maxshape=(None,)+data[0].shape[1:])
