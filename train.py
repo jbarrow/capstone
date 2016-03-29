@@ -11,7 +11,7 @@ nb_epoch=50
 batch_size=33
 
 print "Loading data..."
-data = DataContainer('re.h5')
+data = DataContainer('data.h5')
 data.save('model_split.pkl')
 
 print "Assembling model..."

@@ -1,5 +1,5 @@
 # Download ALL of MAPS
-python download.py --all
+python download.py -u {USERNAME} -p {PASSWORD} --all
 
 # Preprocess only the monophonic portion
 python preprocess.py --dir ./data/ISOL

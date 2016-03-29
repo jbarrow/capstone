@@ -75,6 +75,6 @@ if __name__ == '__main__':
         .mapper(s.process, ['audio_file', 'label_file'], name='map_process')\
         .reducer(rmax, 0, [], name='reduce_max', deps=['map_process'])\
         .mapper(pad_sequences, ['data'], 'map_padding', ['map_process', 'reduce_max'])\
-        .reducer(incremental_save, (0, 're.h5'), [], name='save', deps=['map_padding'])
+        .reducer(incremental_save, (0, 'data.h5'), [], name='save', deps=['map_padding'])
     
     data = e.start(directory=rdir, master='.txt', exts=['.wav', '.txt'])
