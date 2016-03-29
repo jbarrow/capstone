@@ -1,17 +1,18 @@
 import cPickle as pickle
 import numpy as np
 
-from data import DataContainer, load_container
+from data import DataContainer
 from keras.preprocessing.sequence import pad_sequences
 from keras.layers.core import TimeDistributedDense, Dropout, Activation
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 
-print "Loading data..."
-data = load_container('./re.pkl')
+nb_epoch=50
+batch_size=33
 
-print "Splitting data..."
-data.split()
+print "Loading data..."
+data = DataContainer('data.h5')
+data.save('model_split.pkl')
 
 print "Assembling model..."
 model = Sequential()
@@ -24,9 +25,17 @@ print "Compiling model..."
 model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 
 print "Fitting model..."
+for e in range(nb_epoch):
+    print("Epoch: {0}/{1}".format(e, nb_epoch))
+    for X_train, Y_train in data.minibatches(batch_size):
+        model.fit(X_batch, Y_batch, batch_size=batch_size, nb_epoch=1)
+
+
 model.fit(data.X[data.train], data.y[data.train], batch_size=22, nb_epoch=50)
 
 print "Saving fitted model..."
 json_string = model.to_json()
 open('maps_lstm.json', 'w').write(json_string)
 model.save_weights('maps_lstm.h5')
+
+data.close()

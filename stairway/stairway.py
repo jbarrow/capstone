@@ -1,9 +1,8 @@
 from toposort import toposort_flatten
 
 # Extensions:
-#  - add an "Aggregate" or "Reduce" node to the computational graph
 #  - automatically parallelize nodes on the same "level"
-#  - directory processing
+#  - display a computational graph -- d3? Matplotlib?
 
 class Stairway:
     """
@@ -21,7 +20,7 @@ class Stairway:
         self.graph, self.stairs = {}, {}
         self.verbose = verbose
 
-    def step(self, name, deps, f, *args):
+    def step(self, name, deps, f, *args, **kwargs):
         """
         Function to add a step to the computational graph.
           deps [String]: a list of nodes in the graph that the function depends on
@@ -29,7 +28,7 @@ class Stairway:
           args [List]: list of arguments to be passed into the function
         """
         # create a new stair for this function
-        stair = Stair(name, deps, f,  *args)
+        stair = Stair(name, deps, f,  *args, **kwargs)
         # update our computational graph with this stair
         self.stairs[name] = stair
         # check that we have the dependencies in the, and assume any
@@ -62,11 +61,12 @@ class Stairway:
         return self.slist[-1].results
     
 class Stair:
-    def __init__(self, name, deps, f, *args):
+    def __init__(self, name, deps, f, *args, **kwargs):
         self.name = name
         self.f = f
         self.deps = deps
         self.args = args
+        self.kwargs = kwargs
 
     def run(self, deps):
         """
@@ -77,7 +77,7 @@ class Stair:
         for d in deps:
             lst.append(d.results)
         dep = lst + list(self.args)
-        self.results = self.f(*dep)
+        self.results = self.f(*dep, **self.kwargs)
     
     def __eq__(self, other):
         return type(self) == type(other) and self.name == other.name
