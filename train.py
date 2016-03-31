@@ -8,11 +8,10 @@ from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 
 nb_epoch=50
-batch_size=33
+batch_size=200
 
 print "Loading data..."
 data = DataContainer('data.h5')
-data.save('model_split.pkl')
 
 print "Assembling model..."
 model = Sequential()
@@ -28,10 +27,7 @@ print "Fitting model..."
 for e in range(nb_epoch):
     print("Epoch: {0}/{1}".format(e, nb_epoch))
     for X_train, Y_train in data.minibatches(batch_size):
-        model.fit(X_batch, Y_batch, batch_size=batch_size, nb_epoch=1)
-
-
-model.fit(data.X[data.train], data.y[data.train], batch_size=22, nb_epoch=50)
+        model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=1)
 
 print "Saving fitted model..."
 json_string = model.to_json()

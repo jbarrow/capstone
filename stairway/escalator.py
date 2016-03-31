@@ -5,7 +5,6 @@ import functools
 import glob
 import os
 
-@profile
 def fmap(*data, **kwargs):
     """
     Function to map over the data. Because datasets can be astronomically large,
@@ -29,7 +28,6 @@ def fmap(*data, **kwargs):
         del res
     return return_data
 
-@profile
 def freduce(data, f, initializer):
     """
     Function to reduce the mapped data.
