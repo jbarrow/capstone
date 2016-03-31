@@ -1,19 +1,19 @@
 # Download ALL of MAPS
-python download.py -u {USERNAME} -p {PASSWORD} --all
+#python download.py -u  -p  --all
 
 # Preprocess only the monophonic portion
 python preprocess.py --dir ./data/ISOL
 
 # Ignore if this throws an error. Just being safe.
-cp ~/.theanorc ~/.theanorc-old
+#cp ~/.theanorc ~/.theanorc-old
 
 # Create the necessary ~/.theanorc file
-echo "[global]
-floatX = float32
-device = gpu
+#echo "[global]
+#floatX = float32
+#device = gpu
 
-[nvcc]
-fastmath = True" > ~/.theanorc
+#[nvcc]
+#fastmath = True" > ~/.theanorc
 
 # We have to use `sudo` so Theano will use the GPU.
 python train.py

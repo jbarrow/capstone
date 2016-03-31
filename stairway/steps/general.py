@@ -9,7 +9,7 @@ def r_load_pairs(directory='', exts=[], master='.txt'):
     for item in os.listdir(directory):
         if item[0] == '.': continue
         current = os.path.join(directory, item).strip()
-        if os.path.isdir(current): files.extend(r_load_pairs(current, ext))
+        if os.path.isdir(current): files.extend(r_load_pairs(current, exts, master))
         if current[-len(master):] == master:
             current = current[:-len(master)]
             files.append(tuple([current+ext for ext in exts]))

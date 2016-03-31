@@ -13,7 +13,7 @@ class DataContainer:
         self.count = self.f['X'].shape[0]
         self.split()
             
-    def split(self, train=0.7, test=0.2, validation=0.1):
+    def split(self, train=1.0, test=0.0, validation=0.0):
         shuffled = np.random.permutation(self.count)
         
         ind = map(int, map(round, [train*self.count, test*self.count, validation*self.count]))
@@ -31,6 +31,3 @@ class DataContainer:
 
     def close(self):
         self.f.close()
-
-    def save(self, filename):
-        pickle.dump(self, open(filname, 'wb'))
