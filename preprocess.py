@@ -2,57 +2,34 @@ import scipy.io.wavfile
 import pandas as pd
 import numpy as np
 import argparse
+import h5py
 import math
-import os
-import cPickle as pickle
 
-from data import *
-from stairway import Stairway, Escalator
-from stairway.steps import stft, r_load_pairs, print_data
+from stairway import Stairway
+from stairway.steps import stft, r_load_pairs
 
-def load_pandas(filename, sep):
-    data = pd.read_csv(filename, sep=sep)
-    data.columns = ['onset_time', 'offset_time', 'midi_pitch']
-    return data
+frame_size = 0.1
+hop_size = 0.025
+fs = 100
 
 def label(labels, data, hop_size):
     y = np.zeros((np.shape(data)[0], 88))
     for i, row in labels.iterrows():
-        onset_index = int(math.floor(row.onset_time / hop_size + hop_size))
-        offset_index = int(round(row.offset_time / hop_size + hop_size))
-        y[onset_index:offset_index, int(row.midi_pitch-21)] = 1.0
+        onset_index = int(math.floor(row.OnsetTime / hop_size))
+        offset_index = int(round(row.OffsetTime / hop_size))
+        y[onset_index:offset_index, int(row.MidiPitch-21)] = 1.0
     return y
 
-def pad_sequences(max_length, data=[]):
-    with open(data, 'rb') as pf:
-        datum = pickle.load(pf)
-        X = np.zeros((1, max_length, datum[0].shape[1]))
-        y = np.zeros((1, max_length, datum[1].shape[1]))
+def split(audio, label, fs=400):
+    lens = [fs*(i+1) for i in range(audio.shape[0]/fs)]
+    return np.split(audio, lens), np.split(label, lens)
 
-        X[0, max_length-len(datum[0]):, :] = datum[0]
-        y[0, max_length-len(datum[1]):, :] = datum[1]
-
-    return X, y
-
-def rmax(x, data):
-    if data[0].shape[0] > x: return data[0].shape[0]
-    return x
-
-def incremental_save(count_and_filename, data):
-    cnt, filename = count_and_filename
-    if cnt == 0:
-        with h5py.File(filename, 'w') as hf:
-            hf.create_dataset('X', data=data[0], maxshape=(None,)+data[0].shape[1:])
-            hf.create_dataset('y', data=data[1], maxshape=(None,)+data[1].shape[1:])
-    else:
-        with h5py.File(filename) as hf:
-            X, y = hf['X'], hf['y']
-            X.resize((X.shape[0]+1,)+X.shape[1:])
-            y.resize((y.shape[0]+1,)+y.shape[1:])
-            X[cnt, :, :] = data[0]
-            y[cnt, :, :] = data[1]
-            
-    return (cnt+1, filename)
+def pad(data, fs):
+    cnt = len(data[0][-1])
+    if cnt < fs:
+        data[0][-1] = np.lib.pad(data[0][-1], ((fs-cnt, 0),(0, 0)), 'constant')
+        data[1][-1] = np.lib.pad(data[1][-1], ((fs-cnt, 0),(0, 0)), 'constant')
+    return data
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -61,20 +38,27 @@ if __name__ == '__main__':
     args = parser.parse_args()
     rdir = args.recursive_top_dir
     
-    frame_size = 0.1
-    hop_size = 0.025
-
     s = Stairway(False)\
         .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
-        .step('load_label', ['label_file'], load_pandas, '\t')\
-        .step('stft', ['load_audio'], stft, frame_size, hop_size)\
-        .step('label', ['stft', 'load_label'], label, hop_size)\
-        .step('output', ['stft', 'label'], DataSet)
+        .step('load_label', ['label_file'], pd.read_csv, sep='\t')\
+        .step('transform', ['load_audio'], stft, frame_size, hop_size)\
+        .step('label', ['transform', 'load_label'], label, hop_size)\
+        .step('split', ['transform', 'label'], split, fs=fs)\
+        .step('pad', ['split'], pad, fs=100)
 
-    e = Escalator(r_load_pairs, ['directory', 'master', 'exts'])\
-        .mapper(s.process, ['audio_file', 'label_file'], name='map_process')\
-        .reducer(rmax, 0, [], name='reduce_max', deps=['map_process'])\
-        .mapper(pad_sequences, ['data'], 'map_padding', ['map_process', 'reduce_max'])\
-        .reducer(incremental_save, (0, 'data.h5'), [], name='save', deps=['map_padding'])
+    files = r_load_pairs(rdir, exts=['.wav', '.txt'])
     
-    data = e.start(directory=rdir, master='.txt', exts=['.wav', '.txt'])
+    with h5py.File('data.h5', 'w') as hf:
+        X = hf.create_dataset('X', (0, fs, 2206), maxshape=(None, fs, 2206), dtype='float32')
+        y = hf.create_dataset('y', (0, fs, 88), maxshape=(None, fs, 88), dtype='float32')
+
+        cnt = 0
+        for f in files:
+            print 'Preprocessing:', f[0]
+            data = s.process(audio_file=f[0], label_file=f[1])
+            X.resize((X.shape[0]+len(data[0]),)+X.shape[1:])
+            y.resize((y.shape[0]+len(data[1]),)+y.shape[1:])
+            for i in range(len(data[0])):
+                X[cnt, :, :] = data[0][i]
+                y[cnt, :, :] = data[1][i]
+                cnt += 1
