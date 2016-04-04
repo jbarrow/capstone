@@ -13,11 +13,14 @@ hop_size = 0.025
 fs = 100
 
 def label(labels, data, hop_size):
-    y = np.zeros((np.shape(data)[0], 88))
+    y = np.zeros((np.shape(data)[0], 89))
     for i, row in labels.iterrows():
         onset_index = int(math.floor(row.OnsetTime / hop_size))
         offset_index = int(round(row.OffsetTime / hop_size))
         y[onset_index:offset_index, int(row.MidiPitch-21)] = 1.0
+    for i, r in enumerate(y):
+        if np.sum(r) == 0.0:
+            y[i, 88] = 1.0
     return y
 
 def split(audio, label, fs=400):
@@ -29,6 +32,7 @@ def pad(data, fs):
     if cnt < fs:
         data[0][-1] = np.lib.pad(data[0][-1], ((fs-cnt, 0),(0, 0)), 'constant')
         data[1][-1] = np.lib.pad(data[1][-1], ((fs-cnt, 0),(0, 0)), 'constant')
+        data[1][-1][:cnt, 88] = 1.0
     return data
 
 if __name__ == '__main__':
@@ -50,7 +54,7 @@ if __name__ == '__main__':
     
     with h5py.File('data.h5', 'w') as hf:
         X = hf.create_dataset('X', (0, fs, 2206), maxshape=(None, fs, 2206), dtype='float32')
-        y = hf.create_dataset('y', (0, fs, 88), maxshape=(None, fs, 88), dtype='float32')
+        y = hf.create_dataset('y', (0, fs, 89), maxshape=(None, fs, 89), dtype='float32')
 
         cnt = 0
         for f in files:
@@ -58,6 +62,7 @@ if __name__ == '__main__':
             data = s.process(audio_file=f[0], label_file=f[1])
             X.resize((X.shape[0]+len(data[0]),)+X.shape[1:])
             y.resize((y.shape[0]+len(data[1]),)+y.shape[1:])
+            
             for i in range(len(data[0])):
                 X[cnt, :, :] = data[0][i]
                 y[cnt, :, :] = data[1][i]
