@@ -16,7 +16,7 @@ data = DataContainer('data.h5', in_memory=True)
 print "Assembling model..."
 model = Sequential()
 model.add(LSTM(input_shape=(100,2206), output_dim=128, return_sequences=True))
-#model.add(LSTM(output_dim=128, return_sequences=True))
+model.add(Dropout(0.25))
 model.add(TimeDistributedDense(input_dim=128, output_dim=89))
 model.add(Activation('softmax'))
 
@@ -28,7 +28,7 @@ model.fit(data.X_train, data.y_train, batch_size=batch_size, nb_epoch=nb_epoch, 
 
 print "Saving fitted model..."
 json_string = model.to_json()
-open('maps_lstm_simple.json', 'w').write(json_string)
-model.save_weights('maps_lstm_simple.h5', overwrite=True)
+open('maps_lstm_all_dropout.json', 'w').write(json_string)
+model.save_weights('maps_lstm_all_dropout.h5', overwrite=True)
 
 data.close()
