@@ -4,7 +4,8 @@ import numpy as np
 def stft(loaded_data, framesz, hop, pad=0):
     # unpack the data loaded from scipy.io.wavfile.read
     fs, x = loaded_data
-    x = x[:, 0]
+    if len(x.shape) > 1:
+        x = x[:, 0]
     # compute our constants
     framesamp = int(framesz*fs)
     hopsamp = int(hop*fs)
