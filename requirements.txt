@@ -8,6 +8,7 @@ decorator==4.0.9
 funcsigs==0.4
 functools32==3.2.3-2
 gnureadline==6.3.3
+h5py==2.5.0
 ipykernel==4.3.1
 ipython==4.0.0
 ipython-genutils==0.1.0
