@@ -12,15 +12,15 @@ class DataContainer:
         self.in_memory = in_memory
         self.f = h5py.File(filename)
         self.count = self.f['X'].shape[0]
-        self.split()
+        #self.split()
 
         if self.in_memory:
-            self.X_train = self.f['X'][self.train, :, :]
-            self.y_train = self.f['y'][self.train, :, :]
-            self.X_test = self.f['X'][self.test, :, :]
-            self.y_test = self.f['y'][self.test, :, :]
+            self.X_train = self.f['X']
+            self.y_train = self.f['y']
+            #self.X_test = self.f['X'][self.test, :, :]
+            #self.y_test = self.f['y'][self.test, :, :]
             
-    def split(self, train=0.9, test=0.1, validation=0.0):
+    def split(self, train=1.0, test=0.0, validation=0.0):
         shuffled = np.random.permutation(self.count)
         
         ind = map(int, map(round, [train*self.count, test*self.count, validation*self.count]))

@@ -10,7 +10,7 @@ from stairway.steps import stft, r_load_pairs
 
 frame_size = 0.1
 hop_size = 0.025
-fs = 100
+fs = 50
 
 def label(labels, data, hop_size):
     y = np.zeros((np.shape(data)[0], 89))
@@ -48,11 +48,11 @@ if __name__ == '__main__':
         .step('transform', ['load_audio'], stft, frame_size, hop_size)\
         .step('label', ['transform', 'load_label'], label, hop_size)\
         .step('split', ['transform', 'label'], split, fs=fs)\
-        .step('pad', ['split'], pad, fs=100)
+        .step('pad', ['split'], pad, fs=fs)
 
     files = r_load_pairs(rdir, exts=['.wav', '.txt'])
     
-    with h5py.File('data.h5', 'w') as hf:
+    with h5py.File('data_plus.h5', 'w') as hf:
         X = hf.create_dataset('X', (0, fs, 2206), maxshape=(None, fs, 2206), dtype='float32')
         y = hf.create_dataset('y', (0, fs, 89), maxshape=(None, fs, 89), dtype='float32')
 
