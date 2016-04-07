@@ -12,13 +12,12 @@ To download all the data and run the entire model, just type:
 
 But __BEWARE__: this will take a _looooong_ time and a _loooooot_ of space.
 
-### Jupyter Notebook Setup
-
-To get an idea of how the code works, simplified versions are provided in Jupyter (iPython) notebooks in the `notebooks/` folder. These can be viewed in GitHub's file viewer, or interacted with if you have iPython (with Python 2.7) installed on your system.
+### Installation
 
 System Requirements:
 
 - Python, pip
+- sox (`brew install sox`) for preprocessing TIMIT audio
 - (Optional) [virtualenv](https://virtualenv.pypa.io/en/latest/)
 
 To start the [Jupyter Notebook](https://jupyter.org/index.html):
@@ -34,11 +33,13 @@ source venv/bin/activate # Always run this before starting the notebook
 
 # Install requirements
 pip install -r requirements.txt
-# Start the notebook server
-jupyter notebook
 ```
 
 ### Downloading the Data
+
+This project is focused on both speech and music input. Training is done over two major datasets, TIMIT (for speech) and MAPS (for music).
+
+#### MAPS
 
 The very first step is to [contact the nice people in charge of the MAPS database](http://www.tsi.telecom-paristech.fr/aao/en/2010/07/08/maps-database-a-piano-database-for-multipitch-estimation-and-automatic-transcription-of-music/) in order to get access to the data. Once they have sent you a username and password for their FTP server, you can move on. 
 
@@ -63,12 +64,18 @@ To download and organize the MAPS database of Piano music. Note that you should 
 
 Running it without --all or -f, or with --new if you already have a section downloaded, will choose a random subset of the code to download. 
 
+#### TIMIT
+
+TIMIT is not free. To get access, you must either be a member of the [Linguistic Data Consortium](https://www.ldc.upenn.edu) or purchase a [non-member license](https://catalog.ldc.upenn.edu/LDC93S1). Once you have downloaded the `.tar` file, unzip it in the `./data` folder of the project.
+
 ## Preprocessing
+
+### MAPS
 
 The data is preprocessed recursively from a top-level directory. To use the preprocessor, run the python command:
 
 ```
-  python preprocess.py [TOP_LEVEL_DIRECTORY|-h]
+  python maps_preprocess.py [TOP_LEVEL_DIRECTORY|-h]
 ```
 
 Give it the name of a top-level directory (e.g. data/MUS) and let it work (for a while, preprocessing each piece of music takes some time). The resulting TrainingData is saved in a `.pkl` file in its original location, with its original name.
@@ -80,6 +87,12 @@ To get an idea of the preprocessing steps we take, check out the `notebooks/Prep
 - Take the STFT of the data
 - Run a semitone filterbank over the data, saved in the `X` variable of the class
 - Compute a target output matrix, saved in the `Y` variable of the class
+
+### TIMIT
+
+```
+  python timit_preprocess.py [TOP_LEVEL_DIRECTORY|-h]
+```
 
 ## Training
 
@@ -110,6 +123,5 @@ The ultimate goal of this project is to run in real time with microphone input.
 - [x] Aligning notes with training data
 
 ### TIMIT
-- [ ] Get access to TIMIT
-- [ ] TIMIT Downloader
+- [x] Get access to TIMIT
 - [ ] TIMIT Preprocessing
