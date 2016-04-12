@@ -21,12 +21,12 @@ hidden_units=256
 left = Sequential()
 left.add(LSTM(output_dim=hidden_units, init='uniform', inner_init='uniform',
                forget_bias_init='one', return_sequences=True, activation='tanh',
-               inner_activation='sigmoid', input_shape=(100, 2206), dropout_W=0.25,
+               inner_activation='sigmoid', input_dim=2206, dropout_W=0.25,
                dropout_U=0.25))
 right = Sequential()
 right.add(LSTM(output_dim=hidden_units, init='uniform', inner_init='uniform',
                forget_bias_init='one', return_sequences=True, activation='tanh',
-               inner_activation='sigmoid', input_shape=(100, 2206), go_backwards=True,
+               inner_activation='sigmoid', input_dim=2206, go_backwards=True,
                dropout_W=0.25, dropout_U=0.25))
 
 model = Sequential()

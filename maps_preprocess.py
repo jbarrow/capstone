@@ -6,11 +6,12 @@ import h5py
 import math
 
 from stairway import Stairway
-from stairway.steps import stft, r_load_pairs
+from stairway.steps import stft, r_load_pairs, cqt
 
 frame_size = 0.1
 hop_size = 0.025
-fs = 50
+fs = 400
+#bins=64
 
 def label(labels, data, hop_size):
     y = np.zeros((np.shape(data)[0], 89))
@@ -52,8 +53,8 @@ if __name__ == '__main__':
 
     files = r_load_pairs(rdir, exts=['.wav', '.txt'])
     
-    with h5py.File('data_plus.h5', 'w') as hf:
-        X = hf.create_dataset('X', (0, fs, 2206), maxshape=(None, fs, 2206), dtype='float32')
+    with h5py.File('data_test.h5', 'w') as hf:
+        X = hf.create_dataset('X', (0, fs, 518), maxshape=(None, fs, 5), dtype='float32')
         y = hf.create_dataset('y', (0, fs, 89), maxshape=(None, fs, 89), dtype='float32')
 
         cnt = 0

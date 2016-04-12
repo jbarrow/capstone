@@ -5,7 +5,7 @@ import h5py
 import matplotlib.cm as cm
 
 from stairway import Stairway
-from stairway.steps import stft
+from stairway.steps import stft, cqt
 from keras.models import model_from_json
 
 
@@ -17,32 +17,20 @@ def load_model(f_base):
     
 s = Stairway(False)\
     .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
-    .step('stft', ['load_audio'], stft, 0.1, 0.025)
+    .step('stft', ['load_audio'], cqt, 0.05)
 
-d = s.process(audio_file='minuet.wav')
+d = s.process(audio_file='scale.wav')
 d_train = np.zeros((1,)+d.shape)
 d_train[0] = d
 
-m0 = load_model('models/model_0')
-m1 = load_model('models/model_1')
-m2 = load_model('models/model_2')
-m3 = load_model('models/model_3')
-m4 = load_model('models/model_4')
-m5 = load_model('models/model_5')
-m6 = load_model('models/bdlstm')
+m0 = load_model('models/model_cqt')
 
 
 p0 = m0.predict(d_train, batch_size=1)
-p1 = m1.predict(d_train, batch_size=1)
-p2 = m2.predict(d_train, batch_size=1)
-p3 = m2.predict(d_train, batch_size=1)
-p4 = m2.predict(d_train, batch_size=1)
-p5 = m2.predict(d_train, batch_size=1)
-p6 = m6.predict([d_train, d_train], batch_size=1)
 
 #p = model.predict(d_train, batch_size=1)
 
-p = [p0[0] + p1[0] + p2[0] + p3[0] + p4[0] + p5[0] + p6[0]]
+p = p0
 
 print p[0]
 
