@@ -45,3 +45,16 @@ def cqt(loaded_data, framesz, bins):
     g = np.linspace(0, Lx, Lx//(framesz*fs))
     X = Interpolate(imap(np.abs, frames[2:-1]), Lx)(g)
     return X.T
+
+def split(audio, label, fs=400):
+    lens = [fs*(i+1) for i in range(audio.shape[0]/fs)]
+    return np.split(audio, lens), np.split(label, lens)
+
+def pad(data, fs, silence=True, silence_index=-1):
+    cnt = len(data[0][-1])
+    if cnt < fs:
+        data[0][-1] = np.lib.pad(data[0][-1], ((fs-cnt, 0),(0, 0)), 'constant')
+        data[1][-1] = np.lib.pad(data[1][-1], ((fs-cnt, 0),(0, 0)), 'constant')
+        if silence:
+            data[1][-1][:cnt, silence_index] = 1.0
+    return data

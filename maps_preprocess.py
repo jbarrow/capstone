@@ -6,12 +6,11 @@ import h5py
 import math
 
 from stairway import Stairway
-from stairway.steps import stft, r_load_pairs, cqt
+from stairway.steps import stft, r_load_pairs, split, pad
 
 frame_size = 0.1
 hop_size = 0.025
 fs = 400
-#bins=64
 
 def label(labels, data, hop_size):
     y = np.zeros((np.shape(data)[0], 89))
@@ -23,18 +22,6 @@ def label(labels, data, hop_size):
         if np.sum(r) == 0.0:
             y[i, 88] = 1.0
     return y
-
-def split(audio, label, fs=400):
-    lens = [fs*(i+1) for i in range(audio.shape[0]/fs)]
-    return np.split(audio, lens), np.split(label, lens)
-
-def pad(data, fs):
-    cnt = len(data[0][-1])
-    if cnt < fs:
-        data[0][-1] = np.lib.pad(data[0][-1], ((fs-cnt, 0),(0, 0)), 'constant')
-        data[1][-1] = np.lib.pad(data[1][-1], ((fs-cnt, 0),(0, 0)), 'constant')
-        data[1][-1][:cnt, 88] = 1.0
-    return data
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -54,7 +41,7 @@ if __name__ == '__main__':
     files = r_load_pairs(rdir, exts=['.wav', '.txt'])
     
     with h5py.File('data_test.h5', 'w') as hf:
-        X = hf.create_dataset('X', (0, fs, 518), maxshape=(None, fs, 5), dtype='float32')
+        X = hf.create_dataset('X', (0, fs, 2206), maxshape=(None, fs,2206), dtype='float32')
         y = hf.create_dataset('y', (0, fs, 89), maxshape=(None, fs, 89), dtype='float32')
 
         cnt = 0
