@@ -17,13 +17,13 @@ def load_model(f_base):
     
 s = Stairway(False)\
     .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
-    .step('stft', ['load_audio'], cqt, 0.05)
+    .step('stft', ['load_audio'], stft, 0.1, 0.025)
 
 d = s.process(audio_file='scale.wav')
 d_train = np.zeros((1,)+d.shape)
 d_train[0] = d
 
-m0 = load_model('models/model_cqt')
+m0 = load_model('models/model_0')
 
 
 p0 = m0.predict(d_train, batch_size=1)

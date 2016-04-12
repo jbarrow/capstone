@@ -14,17 +14,14 @@ batch_size=100
 np.random.seed(1994)
 
 print "Loading data..."
-data = DataContainer('data_plus.h5', in_memory=True)
+data = DataContainer('data.h5', in_memory=True)
 
 def model_factory():
     print "Assembling model..."
     model = Sequential()
-    #model.add(TimeDistributedDense(input_shape=(100, 2206), output_dim=256))
-    #model.add(Activation('relu'))
-    #model.add(Dropout(0.25))
     model.add(
         LSTM(
-            input_dim=518, output_dim=256,
+            input_dim=2206, output_dim=256,
             return_sequences=True, activation='tanh',
             dropout_U=0.25, dropout_W=0.25, W_regularizer='l2'
         )
@@ -48,8 +45,6 @@ model.fit(
     show_accuracy=True, verbose=1,
     validation_split=0.1, callbacks=[checkpoint]
 )
-
-print model.validation_data
 
 print "Saving fitted model..."
 json_string = model.to_json()
