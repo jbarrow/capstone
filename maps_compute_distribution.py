@@ -11,7 +11,7 @@ from keras.callbacks import ModelCheckpoint
 
 def load_model(f_base):
     model = model_from_json(open(f_base + '.json').read())
-    model.load_weights(f_base + '.h5')
+    model.load_weights(f_base + '_test.h5')
     return model
 
 print "Loading model..."

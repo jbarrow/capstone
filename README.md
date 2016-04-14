@@ -98,10 +98,10 @@ To get an idea of the preprocessing steps we take, check out the `notebooks/Prep
 
 ### RNN
 
-For training, we are using Theano to construct an LSTM network. You can view the steps we take in the `notebooks/Training_Notebook.iPynb` file.
+For training, we are using Keras and Theano to construct and LSTM network. For music transcription, we're using a single LSTM hidden layer with 256 cells.
 
 ```
-  python train.py [-h]
+  python maps_train.py [-h|--seed|--name]
 ```
 
 ### HMM
@@ -124,4 +124,5 @@ The ultimate goal of this project is to run in real time with microphone input.
 
 ### TIMIT
 - [x] Get access to TIMIT
-- [ ] TIMIT Preprocessing
+- [x] TIMIT Preprocessing
+- [ ] TIMIT RNN
