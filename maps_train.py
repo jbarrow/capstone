@@ -1,5 +1,6 @@
 import cPickle as pickle
 import numpy as np
+import h5py
 
 from data import DataContainer
 from keras.preprocessing.sequence import pad_sequences
@@ -50,23 +51,5 @@ print "Saving fitted model..."
 json_string = model.to_json()
 open('models/model_cqt.json', 'w').write(json_string)
 model.save_weights('models/model_cqt.h5', overwrite=True)
-
-print "Running model..."
-pred = model.predict(data.X_train, batch_size=1)
-
-print "Compute note probabilities..."
-(runs, steps, notes) = pred.shape
-pred_unrolled = np.reshape(pred, (runs*steps, notes))
-y_train_unrolled = np.reshape(data.y_train, (runs*steps, notes))
-notes_played = np.argmax(y_train_unrolled, axis=1)
-note_prob = np.zeros((notes, notes))
-for note in range(notes):
-    where_notes_played = np.where(notes_played == note)
-    note_is_played = where_notes_played[0].size > 0
-    if note_is_played:
-        note_prob[note] = np.mean(pred_unrolled[where_notes_played][:], axis=0)
-
-print "Saving note probabilities..."
-
 
 data.close()
