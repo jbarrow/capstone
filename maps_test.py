@@ -39,7 +39,7 @@ note_cov = hf.get('note_cov')
 print "Creating HMM..."
 hmm = HiddenMarkovModel()
 # simple 5-note sequence
-notes = [39, 41, 42, 43, 45, 88] # C D E F G Silence
+notes = [39, 41, 43, 44, 46, 88] # C D E F G Silence
 # durations for the file 'c d e f g.wav'
 durations = [10., 13., 12., 12., 10., 15.]
 self_trans_prob = np.ones(len(notes)) - np.ones(len(notes)) / durations
