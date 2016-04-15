@@ -19,13 +19,13 @@ s = Stairway(False)\
     .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
     .step('stft', ['load_audio'], stft, 0.1, 0.025)
 
-file_name = 'c d e f g.wav'
+file_name = 'basic.wav'
 d = s.process(audio_file=file_name)
 d_train = np.zeros((1,)+d.shape)
 d_train[0] = d
 
 print "Loading model..."
-model = load_model('models/model_0')
+model = load_model('models/model_1')
 
 print "Predicting with model..."
 pred = model.predict(d_train, batch_size=1)
@@ -39,9 +39,9 @@ note_cov = hf.get('note_cov')
 print "Creating HMM..."
 hmm = HiddenMarkovModel()
 # simple 5-note sequence
-notes = [48, 50, 52, 53, 55] # C D E F G
+notes = [39, 41, 42, 43, 45, 88] # C D E F G Silence
 # durations for the file 'c d e f g.wav'
-durations = [10., 13., 12., 12., 10.]
+durations = [10., 13., 12., 12., 10., 15.]
 self_trans_prob = np.ones(len(notes)) - np.ones(len(notes)) / durations
 trans_prob = np.ones(len(notes)) - self_trans_prob
 # add states
@@ -53,7 +53,10 @@ for i in range(len(notes)):
 	hmm.add_states(state)
 	states.append(state)
 # add transition probabilities
-hmm.add_transition(hmm.start, states[0], 1.)
+hmm.add_transition(hmm.start, states[5], 1.)
+# silence
+hmm.add_transition(states[5], states[5], self_trans_prob[5])
+hmm.add_transition(states[5], states[0], trans_prob[5])
 # note 0
 hmm.add_transition(states[0], states[0], self_trans_prob[0])
 hmm.add_transition(states[0], states[1], trans_prob[0])
@@ -71,7 +74,10 @@ hmm.add_transition(states[3], states[4], trans_prob[4])
 hmm.add_transition(states[3], states[2], trans_prob[4])
 # note 4
 hmm.add_transition(states[4], states[4], self_trans_prob[4])
-hmm.add_transition(states[4], hmm.end, trans_prob[4])
+hmm.add_transition(states[4], states[5], trans_prob[4])
+# silence
+hmm.add_transition(states[5], states[5], self_trans_prob[5])
+hmm.add_transition(states[5], hmm.end, trans_prob[5])
 # bake
 hmm.bake()
 

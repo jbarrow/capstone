@@ -15,7 +15,7 @@ def load_model(f_base):
     return model
 
 print "Loading model..."
-model = load_model('models/model_cqt')
+model = load_model('models/model_1')
 
 print "Loading data..."
 data = DataContainer('data.h5', in_memory=True)
