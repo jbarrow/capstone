@@ -44,7 +44,7 @@ model.fit(
     data.X_train, data.y_train,
     batch_size=batch_size, nb_epoch=nb_epoch,
     show_accuracy=True, verbose=1,
-    validation_split=0.1, callbacks=[checkpoint]
+    validation_split=0.4, callbacks=[checkpoint]
 )
 
 print "Saving fitted model..."

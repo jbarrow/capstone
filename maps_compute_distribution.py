@@ -15,7 +15,7 @@ def load_model(f_base):
     return model
 
 print "Loading model..."
-model = load_model('models/model_0')
+model = load_model('models/model_cqt')
 
 print "Loading data..."
 data = DataContainer('data.h5', in_memory=True)
@@ -33,6 +33,8 @@ note_cov = np.zeros((notes, notes, notes)) # note x (cov mat of note)
 for note in range(notes):
     where_notes_played = np.where(notes_played == note)
     note_is_played = where_notes_played[0].size > 0
+    if where_notes_played[0].size < 89:
+    	print "not enough examples for note " + str(note)
     if note_is_played:
         note_prob[note] = np.mean(pred_unrolled[where_notes_played][:], axis=0)
         note_cov[note] = np.cov(pred_unrolled[where_notes_played][:].T)
