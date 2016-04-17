@@ -1,12 +1,9 @@
 import scipy.io.wavfile
-import scipy.io
-import matplotlib.pyplot as plt
 import numpy as np
 import h5py
-import matplotlib.cm as cm
 
 from stairway import Stairway
-from stairway.steps import stft, cqt
+from stairway.steps import stft
 from keras.models import model_from_json
 from pomegranate import *
 
@@ -63,15 +60,12 @@ hmm.add_transition(states[0], states[1], trans_prob[0])
 # note 1
 hmm.add_transition(states[1], states[1], self_trans_prob[1])
 hmm.add_transition(states[1], states[2], trans_prob[1])
-hmm.add_transition(states[1], states[0], trans_prob[1])
 # note 2
 hmm.add_transition(states[2], states[2], self_trans_prob[2])
 hmm.add_transition(states[2], states[3], trans_prob[2])
-hmm.add_transition(states[2], states[1], trans_prob[2])
 # note 3
 hmm.add_transition(states[3], states[3], self_trans_prob[3])
 hmm.add_transition(states[3], states[4], trans_prob[4])
-hmm.add_transition(states[3], states[2], trans_prob[4])
 # note 4
 hmm.add_transition(states[4], states[4], self_trans_prob[4])
 hmm.add_transition(states[4], states[5], trans_prob[4])
