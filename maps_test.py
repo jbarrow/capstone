@@ -16,7 +16,7 @@ s = Stairway(False)\
     .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
     .step('stft', ['load_audio'], stft, 0.1, 0.025)
 
-file_name = 'basic.wav'
+file_name = 'data/basic.wav'
 d = s.process(audio_file=file_name)
 d_train = np.zeros((1,)+d.shape)
 d_train[0] = d

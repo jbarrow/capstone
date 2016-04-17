@@ -25,11 +25,14 @@ pred = model.predict(data.X_train, batch_size=1)
 
 print "Computing note distribution..."
 (runs, steps, notes) = pred.shape
+
 pred_unrolled = np.reshape(pred, (runs*steps, notes))
 y_train_unrolled = np.reshape(data.y_train, (runs*steps, notes))
+
 notes_played = np.argmax(y_train_unrolled, axis=1)
-note_prob = np.zeros((notes, notes)) # note x note probability
-note_cov = np.zeros((notes, notes, notes)) # note x (cov mat of note)
+
+note_prob = np.zeros((notes, notes)) # (note x note probability)
+note_cov = np.zeros((notes, notes, notes)) # (note x cov mat of note)
 for note in range(notes):
     where_notes_played = np.where(notes_played == note)
     note_is_played = where_notes_played[0].size > 0
