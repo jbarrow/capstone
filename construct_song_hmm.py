@@ -118,7 +118,7 @@ if __name__ == '__main__':
     print "Predicting with HMM..."
     note_distribution_file = 'note_distribution.h5'
     notes = [88, 39, 41, 43, 44, 46, 88] # DOES THE AUDIO INCLUDE SILENCES
-    bad_notes = [88, 39, 70, 43, 44, 46, 88]
+    bad_notes = [88, 39, 45, 43, 44, 46, 88]
     durations = [15., 10., 10., 10., 10., 10., 15.]
     song = Song(bad_notes, durations, note_distribution_file)
     song.play(pred)
