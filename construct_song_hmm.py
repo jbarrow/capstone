@@ -6,40 +6,74 @@ from stairway import Stairway
 from stairway.steps import stft
 from keras.models import model_from_json
 from pomegranate import *
+from itertools import groupby
+from operator import itemgetter
 
 class Song:
-    note_distribution_file = 'note_distribution.h5'
     
-    def __init__(self, notes, durations):
-        # get the note distributions
-        hf = h5py.File(self.note_distribution_file, 'r')
-        self.note_prob = hf.get('note_prob')
-        self.states = []
-        
+    # Constants
+    p_correct = 0.9
+    
+    def __init__(self, notes, durations, note_distribution_file):
+        self.note_states = []
+        self.notes = notes
+        self.durations = durations
+        hf = h5py.File(note_distribution_file, 'r')
+        self.note_prob = hf.get('note_prob')[:][:].copy()
+        hf.close()
         # initialize the hidden markov model for the score
         self.hmm = HiddenMarkovModel()
-        
-        for i, note in enumerate(notes):
-            self.add_note(note, i)
-        for i, state in enumerate(self.states[:-1]):
-            self.add_transition(self.states[i], self.states[i+1], durations[i])
-
-        self.hmm.add_transition(self.hmm.start, self.states[0], 1.)
-        self.hmm.add_transition(self.states[-1], self.hmm.end, 1. / durations[-1])
+        self.add_note_states()
+        self.add_mistake_state()
+        self.add_mistake_transitions()
+        self.add_note_transitions()
         self.hmm.bake()
-        hf.close()
-            
+
+    def add_note_states(self):
+        for i, note in enumerate(self.notes):
+            self.add_note(note, i)
+
     def add_note(self, note, i):
         dist = DiscreteDistribution(dict(enumerate(self.note_prob[note])))
-        state = State(dist, name=str(note)+str(i))
+        state = State(dist, name='{}: {}'.format(i, note))
         # add the state to our model
-        self.hmm.add_states(state)
-        self.states.append(state)
+        self.hmm.add_state(state)
+        self.note_states.append(state)
 
-    def add_transition(self, state, next_state, duration):
+    def add_mistake_state(self):
+        mean_prob = np.mean(self.note_prob, axis=0)
+        distr = DiscreteDistribution(dict(enumerate(mean_prob)))
+        self.mistake_state = State(distr, name='mistake')
+        self.hmm.add_state(self.mistake_state)
+
+    def add_mistake_transitions(self):
+        p_mistake_to_mistake = 1. - 1. / np.mean(self.durations)
+        p_mistake_to_note = (1. - p_mistake_to_mistake) / (len(self.note_states) + 1)
+        p_note_to_mistake = 1. - self.p_correct
+        # mistake
+        self.hmm.add_transition(self.mistake_state, self.mistake_state, p_mistake_to_mistake)
+        # note states
+        for note_state in self.note_states:
+            self.hmm.add_transition(note_state, self.mistake_state, p_note_to_mistake)
+            self.hmm.add_transition(self.mistake_state, note_state, p_mistake_to_note)
+        # start & end states
+        self.hmm.add_transition(self.hmm.start, self.mistake_state, p_note_to_mistake)
+        self.hmm.add_transition(self.mistake_state, self.hmm.end, p_mistake_to_note)
+
+    def add_note_transitions(self):
+        for i in range(len(self.note_states)-1):
+            duration = self.durations[i]
+            state = self.note_states[i]
+            next_state = self.note_states[i+1]
+            self.add_note_note_transition(state, next_state, duration)
+        # start & end note states
+        self.hmm.add_transition(self.hmm.start, self.note_states[0], self.p_correct)
+        self.hmm.add_transition(self.note_states[-1], self.hmm.end, 1. / self.durations[-1])
+
+    def add_note_note_transition(self, state, next_state, duration):
         # compute our transition probabilities
-        stp = 1. - 1. / duration
-        otp = 1. - stp
+        otp = 1. / duration
+        stp = self.p_correct - otp
         # add all the transitions
         self.hmm.add_transition(state, state, stp)
         self.hmm.add_transition(state, next_state, otp)
@@ -47,30 +81,44 @@ class Song:
     def play(self, predictions):
         pred_indices = np.argmax(predictions, axis=1)
         prob_path = self.hmm.predict_proba(pred_indices)
-        path = np.argmax(prob_path, axis=1)
-        print str(path)
-        print [state.name for state in self.hmm.states]
-        
-def load_model(f_base):
-    model = model_from_json(open(f_base + '.json').read())
-    model.load_weights(f_base + '.h5')
-    return model
+        self.state_index_path = np.argmax(prob_path, axis=1)
+        self.state_path = [self.hmm.states[i] for i in self.state_index_path]
+        print "HMM prediction ('state index: note index', count):"
+        state_list = [state.name for state in self.state_path]
+        state_sum = [(key, len(list(group))) for key, group in groupby(state_list)]
+        print "\t{}".format(state_sum)
+        print "for RNN prediction (note, count):"
+        pred_sum = [(key, len(list(group))) for key, group in groupby(pred_indices)]
+        print "\t{}".format(pred_sum)
+
+if __name__ == '__main__':
+
+    def load_model(f_base):
+        model = model_from_json(open(f_base + '.json').read())
+        model.load_weights(f_base + '.h5')
+        return model
     
-s = Stairway(False)\
-    .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
-    .step('stft', ['load_audio'], stft, 0.1, 0.025)
+    s = Stairway(False)\
+        .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
+        .step('stft', ['load_audio'], stft, 0.1, 0.025)
 
-file_name = 'basic.wav'
-d = s.process(audio_file=file_name)
-d_train = np.zeros((1,)+d.shape)
-d_train[0] = d
+    print "Loading audio file..."
+    file_name = 'data/basic.wav'
+    d = s.process(audio_file=file_name)
+    d_train = np.zeros((1,)+d.shape)
+    d_train[0] = d
 
-print "Loading model..."
-model = load_model('models/model_1')
+    print "Loading model..."
+    model = load_model('models/model_1')
 
-print "Predicting with model..."
-pred = model.predict(d_train, batch_size=1)
-pred = np.squeeze(pred)
+    print "Predicting with model..."
+    pred = model.predict(d_train, batch_size=1)
+    pred = np.squeeze(pred)
 
-s = Song([88, 39, 41, 43, 44, 46, 88], [15., 10., 10., 10., 10., 10., 15.])
-s.play(pred)
+    print "Predicting with HMM..."
+    note_distribution_file = 'note_distribution.h5'
+    notes = [88, 39, 41, 43, 44, 46, 88] # DOES THE AUDIO INCLUDE SILENCES
+    bad_notes = [88, 39, 45, 43, 44, 46, 88]
+    durations = [15., 10., 10., 10., 10., 10., 15.]
+    song = Song(bad_notes, durations, note_distribution_file)
+    song.play(pred)
