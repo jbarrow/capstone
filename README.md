@@ -125,4 +125,4 @@ The ultimate goal of this project is to run in real time with microphone input.
 ### TIMIT
 - [x] Get access to TIMIT
 - [x] TIMIT Preprocessing
-- [ ] TIMIT RNN
+- [x] TIMIT RNN
