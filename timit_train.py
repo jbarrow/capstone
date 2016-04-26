@@ -15,21 +15,19 @@ print "Loading data..."
 data = DataContainer('timit.h5', in_memory=True)
 
 def model_factory():
-    model.add(TimeDistributedDense(input_dim=801, output_dim=256))
-    model.add(Activation('sigmoid'))
-
-    model.add(TimeDistributedDense(input_dim=256, output_dim=256))
-    model.add(Activation('relu'))
-    
     model = Sequential()
+    
+    model.add(TimeDistributedDense(input_dim=40, output_dim=93))
+    model.add(Activation('sigmoid'))
+    
     model.add(
         LSTM(
-            input_dim=256, output_dim=256,
+            input_dim=93, output_dim=93,
             return_sequences=True
         )
     )
 
-    model.add(TimeDistributedDense(input_dim=256, output_dim=63))
+    model.add(TimeDistributedDense(input_dim=93, output_dim=63))
     model.add(Activation('softmax'))
 
     print "Compiling model..."
@@ -45,7 +43,7 @@ model.fit(
     data.X_train, data.y_train,
     batch_size=batch_size, nb_epoch=nb_epoch,
     show_accuracy=True, verbose=1,
-    validation_split=1, callback=[checkpoint]
+    validation_split=.1, callbacks=[checkpoint]
 )
 
 print "Saving fitted model..."

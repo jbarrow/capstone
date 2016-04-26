@@ -56,5 +56,8 @@ def pad(data, fs, silence=True, silence_index=-1):
         data[0][-1] = np.lib.pad(data[0][-1], ((fs-cnt, 0),(0, 0)), 'constant')
         data[1][-1] = np.lib.pad(data[1][-1], ((fs-cnt, 0),(0, 0)), 'constant')
         if silence:
-            data[1][-1][:cnt, silence_index] = 1.0
+            for i, d in enumerate(data[1]):
+                for j, r in enumerate(d):
+                    if np.sum(r) < 0.5:
+                        data[1][i][j, silence_index] = 1.0
     return data

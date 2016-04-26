@@ -5,11 +5,13 @@ import argparse
 import h5py
 import math
 
+from sklearn import preprocessing
 from stairway import Stairway
 from stairway.steps import stft, r_load_pairs, split, pad
+from preprocessing import FilterBank
 
 frame_size = 0.1
-hop_size = 0.025
+hop_size = 512./44100
 fs = 400
 
 def label(labels, data, hop_size):
@@ -19,7 +21,7 @@ def label(labels, data, hop_size):
         offset_index = int(round(row.OffsetTime / hop_size))
         y[onset_index:offset_index, int(row.MidiPitch-21)] = 1.0
     for i, r in enumerate(y):
-        if np.sum(r) == 0.0:
+        if np.sum(r) < 0.5:
             y[i, 88] = 1.0
     return y
 
@@ -29,19 +31,31 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     rdir = args.recursive_top_dir
+
+    f = FilterBank(44100, 0.1, 0)
+    f.construct_bands(440.0, 48, 39)
     
     s = Stairway(False)\
         .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
         .step('load_label', ['label_file'], pd.read_csv, sep='\t')\
         .step('transform', ['load_audio'], stft, frame_size, hop_size)\
-        .step('label', ['transform', 'load_label'], label, hop_size)\
-        .step('split', ['transform', 'label'], split, fs=fs)\
+        .step('filterbank', ['transform'], f.apply_filterbank)\
+        .step('label', ['filterbank', 'load_label'], label, hop_size)\
+        .step('split', ['filterbank', 'label'], split, fs=fs)\
         .step('pad', ['split'], pad, fs=fs)
 
+    #s = Stairway(False)\
+    #    .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
+    #    .step('load_label', ['label_file'], pd.read_csv, sep='\t')\
+    #    .step('transform', ['load_audio'], cqt, hop_size)\
+    #    .step('label', ['transform', 'load_label'], label, hop_size)\
+    #    .step('split', ['transform', 'label'], split, fs=fs)\
+    #    .step('pad', ['split'], pad, fs=fs)
+    
     files = r_load_pairs(rdir, exts=['.wav', '.txt'])
     
-    with h5py.File('data_test.h5', 'w') as hf:
-        X = hf.create_dataset('X', (0, fs, 2206), maxshape=(None, fs,2206), dtype='float32')
+    with h5py.File('data_cqt.h5', 'w') as hf:
+        X = hf.create_dataset('X', (0, fs, 178), maxshape=(None, fs, 178), dtype='float32')
         y = hf.create_dataset('y', (0, fs, 89), maxshape=(None, fs, 89), dtype='float32')
 
         cnt = 0
@@ -55,3 +69,5 @@ if __name__ == '__main__':
                 X[cnt, :, :] = data[0][i]
                 y[cnt, :, :] = data[1][i]
                 cnt += 1
+
+#        X /= np.max(np.max(X, axis=0), axis=0)

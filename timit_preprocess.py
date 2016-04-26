@@ -5,13 +5,14 @@ import os.path
 import glob
 import h5py
 import math
+import librosa
 
 from scipy.io import wavfile
 from stairway import Stairway
 from stairway.steps import stft, r_load_pairs, split, pad
 
-frame_size=0.1
-hop_size=0.025
+frame_size=512
+hop_size=128
 fs = 400
 
 def fix_wavs():
@@ -48,6 +49,13 @@ def label(labels, data, hop_size, sample_rate, phone_to_index):
         y[onset_index:offset_index, phone_to_index[row[2]]] = 1.0
     return y
 
+def mfcc(data, frame_size, hop_size):
+    fs, x = data
+    mfccs = librosa.feature.mfcc(y=x, sr=fs, n_fft=frame_size, hop_length=hop_size)
+    diffs = librosa.feature.delta(mfccs)
+    
+    return np.hstack((mfccs.T, diffs.T))
+
 if __name__ == '__main__':
     if not os.path.isfile('./data/TIMIT/corrected.txt'):
         print "Fixing wav files..."
@@ -61,15 +69,15 @@ if __name__ == '__main__':
     s = Stairway(False)\
         .step('load_audio', ['audio_file'], wavfile.read)\
         .step('load_label', ['label_file'], pd.read_csv, sep=' ', header=None)\
-        .step('transform', ['load_audio'], stft, frame_size, hop_size)\
-        .step('label', ['transform', 'load_label'], label, hop_size, 16000, phone_to_index)\
+        .step('transform', ['load_audio'], mfcc, frame_size, hop_size)\
+        .step('label', ['transform', 'load_label'], label, hop_size/16000., 16000, phone_to_index)\
         .step('split', ['transform', 'label'], split, fs=fs)\
         .step('pad', ['split'], pad, fs=fs, silence=True, silence_index=phone_to_index['h#'])
 
     files = r_load_pairs('./data/TIMIT/TRAIN', exts=['.WAV', '.PHN'], master='.PHN')
 
     with h5py.File('timit.h5', 'w') as hf:
-        X = hf.create_dataset('X', (0, fs, 801), maxshape=(None, fs, 801), dtype='float32')
+        X = hf.create_dataset('X', (0, fs, 40), maxshape=(None, fs, 40), dtype='float32')
         y = hf.create_dataset('y', (0, fs, phone_cnt), maxshape=(None, fs, phone_cnt), dtype='float32')
 
         cnt = 0

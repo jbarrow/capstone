@@ -10,7 +10,7 @@ DataSet = namedtuple('DataSet', ['X', 'y'])
 class DataContainer:
     def __init__(self, filename, in_memory=False):
         self.in_memory = in_memory
-        self.f = h5py.File(filename)
+        self.f = h5py.File(filename, 'r')
         self.count = self.f['X'].shape[0]
         #self.split()
 

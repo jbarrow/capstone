@@ -10,6 +10,7 @@ class Band:
         self.values = np.zeros(self.high-self.low+1)
         for i in range(f):
             self.values[i] = float(i)/f
-        for i in range(s+1):
+        self.values[f] = 1.0
+        for i in range(1, s):
             self.values[f+i] = float(s-i)/s
         self.total = np.sum(self.values)
