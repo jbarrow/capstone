@@ -44,6 +44,8 @@ class Song:
     def add_mistake_states(self):
         for n in range(len(self.notes)):
             del_notes = [self.notes[n]]
+            if n < len(self.notes)-1:
+                del_notes.append(self.notes[n+1])
             notes = np.delete(range(self.note_prob.shape[0]), del_notes)
             prob = np.delete(self.note_prob, del_notes, axis=0)
             num_notes = prob.shape[0]
@@ -124,7 +126,7 @@ if __name__ == '__main__':
     notes = [88, 39, 41, 43, 44, 46, 88]
     notes = [39, 41, 43, 44, 46]
     bad_notes = [88, 39, 45, 43, 44, 46, 88]
-    bad_notes = [39, 70, 43, 44, 46]
+    bad_notes = [39, 20, 43, 44, 46]
     durations = [10., 10., 10., 10., 10.]
-    song = Song(bad_notes, durations, note_distribution_file)
+    song = Song(notes, durations, note_distribution_file)
     song.play(pred)
