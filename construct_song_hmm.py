@@ -16,6 +16,7 @@ class Song:
     
     def __init__(self, notes, durations, note_distribution_file):
         self.note_states = []
+        self.mistake_states = []
         self.notes = notes
         self.durations = durations
         hf = h5py.File(note_distribution_file, 'r')
@@ -24,7 +25,7 @@ class Song:
         # initialize the hidden markov model for the score
         self.hmm = HiddenMarkovModel()
         self.add_note_states()
-        self.add_mistake_state()
+        self.add_mistake_states()
         self.add_mistake_transitions()
         self.add_note_transitions()
         self.hmm.bake()
@@ -40,25 +41,28 @@ class Song:
         self.hmm.add_state(state)
         self.note_states.append(state)
 
-    def add_mistake_state(self):
-        mean_prob = np.mean(self.note_prob, axis=0)
-        distr = DiscreteDistribution(dict(enumerate(mean_prob)))
-        self.mistake_state = State(distr, name='mistake')
-        self.hmm.add_state(self.mistake_state)
+    def add_mistake_states(self):
+        for n in range(len(self.notes)):
+            del_notes = [self.notes[n]]
+            notes = np.delete(range(self.note_prob.shape[0]), del_notes)
+            prob = np.delete(self.note_prob, del_notes, axis=0)
+            num_notes = prob.shape[0]
+            distr = [DiscreteDistribution(dict(enumerate(prob[i]))) for i in range(num_notes)]
+            states = [State(distr[i], name='m_{}_{}'.format(n, notes[i])) for i in range(num_notes)]
+            self.mistake_states.append(states)
+            self.hmm.add_states(states)
 
     def add_mistake_transitions(self):
         p_mistake_to_mistake = 1. - 1. / np.mean(self.durations)
         p_mistake_to_note = (1. - p_mistake_to_mistake) / (len(self.note_states) + 1)
-        p_note_to_mistake = 1. - self.p_correct
-        # mistake
-        self.hmm.add_transition(self.mistake_state, self.mistake_state, p_mistake_to_mistake)
-        # note states
-        for note_state in self.note_states:
-            self.hmm.add_transition(note_state, self.mistake_state, p_note_to_mistake)
-            self.hmm.add_transition(self.mistake_state, note_state, p_mistake_to_note)
-        # start & end states
-        self.hmm.add_transition(self.hmm.start, self.mistake_state, p_note_to_mistake)
-        self.hmm.add_transition(self.mistake_state, self.hmm.end, p_mistake_to_note)
+        p_note_to_mistake = (1. - self.p_correct) / len(self.mistake_states[0])
+        for i in range(len(self.notes)):
+            states = self.mistake_states[i]
+            note_state = self.note_states[i]
+            for state in states:
+                self.hmm.add_transition(note_state, state, p_note_to_mistake)
+                self.hmm.add_transition(state, note_state, p_mistake_to_note)
+                self.hmm.add_transition(state, state, p_mistake_to_mistake)
 
     def add_note_transitions(self):
         for i in range(len(self.note_states)-1):
@@ -117,8 +121,10 @@ if __name__ == '__main__':
 
     print "Predicting with HMM..."
     note_distribution_file = 'note_distribution.h5'
-    notes = [88, 39, 41, 43, 44, 46, 88] # DOES THE AUDIO INCLUDE SILENCES
+    notes = [88, 39, 41, 43, 44, 46, 88]
+    notes = [39, 41, 43, 44, 46]
     bad_notes = [88, 39, 45, 43, 44, 46, 88]
-    durations = [15., 10., 10., 10., 10., 10., 15.]
+    bad_notes = [39, 70, 43, 44, 46]
+    durations = [10., 10., 10., 10., 10.]
     song = Song(bad_notes, durations, note_distribution_file)
     song.play(pred)
