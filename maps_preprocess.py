@@ -11,7 +11,7 @@ from stairway.steps import stft, r_load_pairs, split, pad
 from preprocessing import FilterBank
 
 frame_size = 0.1
-hop_size = 512./44100
+hop_size = 0.0125#512./44100
 fs = 400
 
 def label(labels, data, hop_size):
@@ -39,9 +39,8 @@ if __name__ == '__main__':
         .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
         .step('load_label', ['label_file'], pd.read_csv, sep='\t')\
         .step('transform', ['load_audio'], stft, frame_size, hop_size)\
-        .step('filterbank', ['transform'], f.apply_filterbank)\
-        .step('label', ['filterbank', 'load_label'], label, hop_size)\
-        .step('split', ['filterbank', 'label'], split, fs=fs)\
+        .step('label', ['transform', 'load_label'], label, hop_size)\
+        .step('split', ['transform', 'label'], split, fs=fs)\
         .step('pad', ['split'], pad, fs=fs)
 
     #s = Stairway(False)\
@@ -54,8 +53,8 @@ if __name__ == '__main__':
     
     files = r_load_pairs(rdir, exts=['.wav', '.txt'])
     
-    with h5py.File('data_cqt.h5', 'w') as hf:
-        X = hf.create_dataset('X', (0, fs, 178), maxshape=(None, fs, 178), dtype='float32')
+    with h5py.File('maps_full_stft.h5', 'w') as hf:
+        X = hf.create_dataset('X', (0, fs, 2206), maxshape=(None, fs, 2206), dtype='float32')
         y = hf.create_dataset('y', (0, fs, 89), maxshape=(None, fs, 89), dtype='float32')
 
         cnt = 0

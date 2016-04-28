@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import librosa
 
 from band import Band
 
@@ -30,13 +31,12 @@ class FilterBank:
         self.width = n_below + n_above + 1
     
     def apply_filterbank(self, freqs):
-        values = np.zeros((freqs.shape[0], 2*(len(self.bands)+1)))
+        values = np.zeros((freqs.shape[0], (len(self.bands)+1)))
         for j in range(freqs.shape[0]):
             for i, band in enumerate(self.bands):
                 values[j, i] = band.values.dot(freqs[j, band.low:band.high+1]) / band.total
-            values[j, 88] = np.log(np.sum(freqs[j]))
+            values[j, 88] = np.sum(np.sqrt(np.mean(freqs[j]**2)))
 
-        diffs = np.diff(values, axis=0) / 0.025
-        values[1:, 89:] = diffs[:, :89]
-        
-        return values
+        diffs = librosa.feature.delta(values, axis=0)
+
+        return np.hstack((values, diffs))
