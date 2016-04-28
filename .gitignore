@@ -16,3 +16,9 @@
 venv/
 
 .python-version
+
+*.out
+*.aux
+*.sty
+*.log
+*.bst
