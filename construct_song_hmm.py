@@ -6,25 +6,32 @@ from stairway import Stairway
 from stairway.steps import stft
 from keras.models import model_from_json
 from pomegranate import *
-from itertools import groupby
+from itertools import groupby, izip_longest
 from operator import itemgetter
+
+def gaussian(x, mu, sig):
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
 class Song:
     
     # Constants
     p_correct = 0.9
+    mistake_std = 30
+    sigma = 5
     
     def __init__(self, notes, durations, note_distribution_file):
         self.note_states = []
+        self.mistake_states = []
         self.notes = notes
         self.durations = durations
         hf = h5py.File(note_distribution_file, 'r')
         self.note_prob = hf.get('note_prob')[:][:].copy()
+        self.note_cov = hf.get('note_cov')[:][:][:].copy()
         hf.close()
         # initialize the hidden markov model for the score
         self.hmm = HiddenMarkovModel()
         self.add_note_states()
-        self.add_mistake_state()
+        self.add_mistake_states()
         self.add_mistake_transitions()
         self.add_note_transitions()
         self.hmm.bake()
@@ -40,25 +47,33 @@ class Song:
         self.hmm.add_state(state)
         self.note_states.append(state)
 
-    def add_mistake_state(self):
-        mean_prob = np.mean(self.note_prob, axis=0)
-        distr = DiscreteDistribution(dict(enumerate(mean_prob)))
-        self.mistake_state = State(distr, name='mistake')
-        self.hmm.add_state(self.mistake_state)
+    def add_mistake_states(self):
+        for n in self.notes:
+            num_notes = self.note_prob.shape[0]
+            gauss = gaussian(np.linspace(0, num_notes-1, num_notes), n, self.mistake_std)
+            norm_gauss = gauss / np.sum(gauss)
+            distr = DiscreteDistribution(dict(enumerate(norm_gauss)))
+            state = State(distr, name='m_{}'.format(n))
+            self.mistake_states.append(state)
+            self.hmm.add_state(state)
 
     def add_mistake_transitions(self):
-        p_mistake_to_mistake = 1. - 1. / np.mean(self.durations)
-        p_mistake_to_note = (1. - p_mistake_to_mistake) / (len(self.note_states) + 1)
+        p_mistake_to_next = 1. / np.mean(self.durations)
+        p_mistake_to_mistake = self.p_correct - 1. / np.mean(self.durations)
+        p_mistake_to_note = 1. - self.p_correct
         p_note_to_mistake = 1. - self.p_correct
-        # mistake
-        self.hmm.add_transition(self.mistake_state, self.mistake_state, p_mistake_to_mistake)
-        # note states
-        for note_state in self.note_states:
-            self.hmm.add_transition(note_state, self.mistake_state, p_note_to_mistake)
-            self.hmm.add_transition(self.mistake_state, note_state, p_mistake_to_note)
+        for i in range(len(self.mistake_states)):
+            note = self.note_states[i]
+            mistake = self.mistake_states[i]
+            self.hmm.add_transition(mistake, mistake, p_mistake_to_mistake)
+            self.hmm.add_transition(mistake, note, p_mistake_to_note)
+            self.hmm.add_transition(note, mistake, p_note_to_mistake)
+            if i < len(self.mistake_states) - 1:
+                next_mistake = self.mistake_states[i+1]
+                self.hmm.add_transition(mistake, next_mistake, p_mistake_to_next)
         # start & end states
-        self.hmm.add_transition(self.hmm.start, self.mistake_state, p_note_to_mistake)
-        self.hmm.add_transition(self.mistake_state, self.hmm.end, p_mistake_to_note)
+        self.hmm.add_transition(self.hmm.start, self.mistake_states[0], p_note_to_mistake)
+        self.hmm.add_transition(self.mistake_states[-1], self.hmm.end, 1. / self.durations[-1])
 
     def add_note_transitions(self):
         for i in range(len(self.note_states)-1):
@@ -117,8 +132,8 @@ if __name__ == '__main__':
 
     print "Predicting with HMM..."
     note_distribution_file = 'note_distribution.h5'
-    notes = [88, 39, 41, 43, 44, 46, 88] # DOES THE AUDIO INCLUDE SILENCES
-    bad_notes = [88, 39, 45, 43, 44, 46, 88]
-    durations = [15., 10., 10., 10., 10., 10., 15.]
+    notes =     [39, 41, 43, 44, 46] # DOES THE AUDIO INCLUDE SILENCES
+    bad_notes = [39, 41, 23, 44, 46]
+    durations = [10., 10., 10., 10., 10.]
     song = Song(bad_notes, durations, note_distribution_file)
     song.play(pred)
