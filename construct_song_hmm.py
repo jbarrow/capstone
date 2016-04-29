@@ -67,12 +67,12 @@ class Song:
         p_mistake_to_note = (1. - p_mistake_to_mistake) / (len(self.note_states) + 1)
         p_note_to_mistake = (1. - self.p_correct) / len(self.mistake_states[0])
         for i in range(len(self.notes)):
-            states = self.mistake_states[i]
-            note_state = self.note_states[i]
-            for state in states:
-                self.hmm.add_transition(note_state, state, p_note_to_mistake)
-                self.hmm.add_transition(state, note_state, p_mistake_to_note)
-                self.hmm.add_transition(state, state, p_mistake_to_mistake)
+            mistakes = self.mistake_states[i]
+            note = self.note_states[i]
+            for mistake in mistakes:
+                self.hmm.add_transition(note, mistake, p_note_to_mistake)
+                self.hmm.add_transition(mistake, note, p_mistake_to_note)
+                self.hmm.add_transition(mistake, mistake, p_mistake_to_mistake)
 
     def add_note_transitions(self):
         for i in range(len(self.note_states)-1):
