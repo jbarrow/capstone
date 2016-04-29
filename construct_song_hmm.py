@@ -54,6 +54,14 @@ class Song:
             self.mistake_states.append(states)
             self.hmm.add_states(states)
 
+    def states_without_notes(self, notes_to_remove):
+        notes = np.delete(range(self.note_prob.shape[0]), del_notes)
+        prob = np.delete(self.note_prob, del_notes, axis=0)
+        num_notes = prob.shape[0]
+        distr = [DiscreteDistribution(dict(enumerate(prob[i]))) for i in range(num_notes)]
+        states = [State(distr[i], name='m_{}_{}'.format(n, notes[i])) for i in range(num_notes)]
+        return states
+
     def add_mistake_transitions(self):
         p_mistake_to_mistake = 1. - 1. / np.mean(self.durations)
         p_mistake_to_note = (1. - p_mistake_to_mistake) / (len(self.note_states) + 1)
@@ -123,10 +131,8 @@ if __name__ == '__main__':
 
     print "Predicting with HMM..."
     note_distribution_file = 'note_distribution.h5'
-    notes = [88, 39, 41, 43, 44, 46, 88]
-    notes = [39, 41, 43, 44, 46]
-    bad_notes = [88, 39, 45, 43, 44, 46, 88]
-    bad_notes = [39, 20, 43, 44, 46]
+    notes =     [39, 41, 43, 44, 46]
+    bad_notes = [39, 20, 45, 44, 46]
     durations = [10., 10., 10., 10., 10.]
-    song = Song(notes, durations, note_distribution_file)
+    song = Song(bad_notes, durations, note_distribution_file)
     song.play(pred)
