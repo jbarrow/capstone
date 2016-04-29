@@ -62,7 +62,7 @@ class Song:
     def add_mistake_transitions(self):
         # compute transition probabilities
         p_mistake_to_mistake = 1. - 1. / np.mean(self.durations)
-        p_mistake_to_note = (1. - p_mistake_to_mistake) / (len(self.note_states) + 1)
+        p_mistake_to_note = (1. - p_mistake_to_mistake) / 2.
         p_note_to_mistake = (1. - self.p_correct) / len(self.mistake_states[0])
         # add transitions
         for i in range(len(self.notes)):
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     print "Predicting with HMM..."
     note_distribution_file = 'note_distribution.h5'
     notes =     [39, 41, 43, 44, 46]
-    bad_notes = [39, 41, 43, 70, 44, 46]
+    bad_notes = [39, 44, 46]
     durations = [10., 10., 10., 10., 10., 10.]
     song = Song(bad_notes, durations, note_distribution_file)
     song.play(pred)
