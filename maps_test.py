@@ -24,15 +24,15 @@ def load_model_test(f_base):
 def pad(data):
     return data[400:800, :]
 
-f = FilterBank(44100, 0.1, 0)
-f.construct_bands(440.0, 48, 39)
+#f = FilterBank(44100, 0.1, 0)
+#f.construct_bands(440.0, 48, 39)
     
 s = Stairway(False)\
     .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
     .step('stft', ['load_audio'], stft, 0.1, 0.0125)
     #.step('filterbank', ['stft'], f.apply_filterbank)
     #.step('scale', ['filterbank'], sklearn.preprocessing.scale, axis=0)
-s.step('pad', ['stft'], pad)
+#s.step('pad', ['stft'], pad)
 
 file_name = 'minuet.wav'
 d = s.process(audio_file=file_name)
@@ -40,7 +40,7 @@ d_train = np.zeros((1,)+d.shape)
 d_train[0] = d
 
 print "Loading model..."
-model = load_model('models/final/maps_full_unidirectional_no_mask')
+model = load_model('models/final/ensemble/uni_nm_s17_e20')
 #print "Loading model..."
 #m1 = load_model_test('models/final/maps_full_bidirectional')
 

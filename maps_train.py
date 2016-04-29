@@ -41,7 +41,7 @@ def model_factory():
     #model.add(Masking(mask_value=0., input_shape=(400, 2206)))
     model.add(
         LSTM(
-            input_dim=2206, output_dim=256,
+            input_dim=2206, output_dim=128,
             return_sequences=True, activation='tanh',
             dropout_U=0.2, dropout_W=0.2, W_regularizer='l2'
         )
