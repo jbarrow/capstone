@@ -6,7 +6,6 @@ import sklearn
 import matplotlib.pyplot as plt
 import operator
 
-from preprocessing import FilterBank
 from stairway import Stairway
 from stairway.steps import stft
 from keras.models import model_from_json
