@@ -32,14 +32,11 @@ class Song:
 
     def add_note_states(self):
         for i, note in enumerate(self.notes):
-            self.add_note(note, i)
-
-    def add_note(self, note, i):
-        dist = DiscreteDistribution(dict(enumerate(self.note_prob[note])))
-        state = State(dist, name='{}: {}'.format(i, note))
-        # add the state to our model
-        self.hmm.add_state(state)
-        self.note_states.append(state)
+            dist = DiscreteDistribution(dict(enumerate(self.note_prob[note])))
+            state = State(dist, name='{}: {}'.format(i, note))
+            # add the state to our model
+            self.hmm.add_state(state)
+            self.note_states.append(state)
 
     def add_mistake_states(self):
         for n in range(len(self.notes)):
@@ -63,9 +60,11 @@ class Song:
         return states
 
     def add_mistake_transitions(self):
+        # compute transition probabilities
         p_mistake_to_mistake = 1. - 1. / np.mean(self.durations)
         p_mistake_to_note = (1. - p_mistake_to_mistake) / (len(self.note_states) + 1)
         p_note_to_mistake = (1. - self.p_correct) / len(self.mistake_states[0])
+        # add transitions
         for i in range(len(self.notes)):
             mistakes = self.mistake_states[i]
             note = self.note_states[i]
@@ -73,28 +72,27 @@ class Song:
                 self.hmm.add_transition(note, mistake, p_note_to_mistake)
                 self.hmm.add_transition(mistake, note, p_mistake_to_note)
                 self.hmm.add_transition(mistake, mistake, p_mistake_to_mistake)
+            # transition from ith mistake states to (i+1)th note state
             if i < len(self.notes)-1:
                 next_note = self.note_states[i+1]
                 for mistake in mistakes:
                     self.hmm.add_transition(mistake, next_note, p_mistake_to_note)
 
     def add_note_transitions(self):
-        for i in range(len(self.note_states)-1):
+        for i in range(len(self.note_states)):
             duration = self.durations[i]
+            # compute transition probabilities
+            otp = 1. / duration # out transition probability
+            stp = self.p_correct - otp # self transition probability
+            # add transitions
             state = self.note_states[i]
-            next_state = self.note_states[i+1]
-            self.add_note_note_transition(state, next_state, duration)
-        # start & end note states
+            self.hmm.add_transition(state, state, stp)
+            if i < len(self.note_states)-1:
+                next_state = self.note_states[i+1]
+                self.hmm.add_transition(state, next_state, otp)
+        # start & end note transitions
         self.hmm.add_transition(self.hmm.start, self.note_states[0], self.p_correct)
         self.hmm.add_transition(self.note_states[-1], self.hmm.end, 1. / self.durations[-1])
-
-    def add_note_note_transition(self, state, next_state, duration):
-        # compute our transition probabilities
-        otp = 1. / duration
-        stp = self.p_correct - otp
-        # add all the transitions
-        self.hmm.add_transition(state, state, stp)
-        self.hmm.add_transition(state, next_state, otp)
 
     def play(self, predictions):
         pred_indices = np.argmax(predictions, axis=1)
@@ -136,7 +134,7 @@ if __name__ == '__main__':
     print "Predicting with HMM..."
     note_distribution_file = 'note_distribution.h5'
     notes =     [39, 41, 43, 44, 46]
-    bad_notes = [70, 20, 45, 44, 46]
-    durations = [10., 10., 10., 10., 10.]
+    bad_notes = [39, 41, 43, 70, 44, 46]
+    durations = [10., 10., 10., 10., 10., 10.]
     song = Song(bad_notes, durations, note_distribution_file)
     song.play(pred)
