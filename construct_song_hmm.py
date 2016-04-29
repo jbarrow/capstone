@@ -73,6 +73,10 @@ class Song:
                 self.hmm.add_transition(note, mistake, p_note_to_mistake)
                 self.hmm.add_transition(mistake, note, p_mistake_to_note)
                 self.hmm.add_transition(mistake, mistake, p_mistake_to_mistake)
+            if i < len(self.notes)-1:
+                next_note = self.note_states[i+1]
+                for mistake in mistakes:
+                    self.hmm.add_transition(mistake, next_note, p_mistake_to_note)
 
     def add_note_transitions(self):
         for i in range(len(self.note_states)-1):
@@ -132,7 +136,7 @@ if __name__ == '__main__':
     print "Predicting with HMM..."
     note_distribution_file = 'note_distribution.h5'
     notes =     [39, 41, 43, 44, 46]
-    bad_notes = [39, 20, 45, 44, 46]
+    bad_notes = [70, 20, 45, 44, 46]
     durations = [10., 10., 10., 10., 10.]
     song = Song(bad_notes, durations, note_distribution_file)
     song.play(pred)
