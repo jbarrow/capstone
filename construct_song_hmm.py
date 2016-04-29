@@ -22,7 +22,7 @@ class Song:
         hf = h5py.File(note_distribution_file, 'r')
         self.note_prob = hf.get('note_prob')[:][:].copy()
         hf.close()
-        # initialize the hidden markov model for the score
+        # initialize the hidden Markov model for the score
         self.hmm = HiddenMarkovModel()
         self.add_note_states()
         self.add_mistake_states()
@@ -34,39 +34,34 @@ class Song:
         for i, note in enumerate(self.notes):
             dist = DiscreteDistribution(dict(enumerate(self.note_prob[note])))
             state = State(dist, name='{}: {}'.format(i, note))
-            # add the state to our model
             self.hmm.add_state(state)
             self.note_states.append(state)
 
     def add_mistake_states(self):
         for n in range(len(self.notes)):
-            del_notes = [self.notes[n]]
+            notes_to_remove = [self.notes[n]]
             if n < len(self.notes)-1:
-                del_notes.append(self.notes[n+1])
-            notes = np.delete(range(self.note_prob.shape[0]), del_notes)
-            prob = np.delete(self.note_prob, del_notes, axis=0)
-            num_notes = prob.shape[0]
-            distr = [DiscreteDistribution(dict(enumerate(prob[i]))) for i in range(num_notes)]
-            states = [State(distr[i], name='m_{}_{}'.format(n, notes[i])) for i in range(num_notes)]
+                notes_to_remove.append(self.notes[n+1])
+            states = self.mistake_states_without_notes(notes_to_remove, n)
             self.mistake_states.append(states)
             self.hmm.add_states(states)
 
-    def states_without_notes(self, notes_to_remove):
-        notes = np.delete(range(self.note_prob.shape[0]), del_notes)
-        prob = np.delete(self.note_prob, del_notes, axis=0)
+    def mistake_states_without_notes(self, notes_to_remove, note):
+        notes = np.delete(range(self.note_prob.shape[0]), notes_to_remove)
+        prob = np.delete(self.note_prob, notes_to_remove, axis=0)
         num_notes = prob.shape[0]
         distr = [DiscreteDistribution(dict(enumerate(prob[i]))) for i in range(num_notes)]
-        states = [State(distr[i], name='m_{}_{}'.format(n, notes[i])) for i in range(num_notes)]
+        states = [State(distr[i], name='m_{}_{}'.format(note, notes[i])) for i in range(num_notes)]
         return states
 
     def add_mistake_transitions(self):
-        # compute transition probabilities
+        # transition probabilities
         p_mistake_to_mistake = 1. - 1. / np.mean(self.durations)
         p_mistake_to_note = (1. - p_mistake_to_mistake) / 2.
         p_note_to_mistake = (1. - self.p_correct) / len(self.mistake_states[0])
-        # add transitions
         for i in range(len(self.notes)):
             mistakes = self.mistake_states[i]
+            # add mistake transitions
             note = self.note_states[i]
             for mistake in mistakes:
                 self.hmm.add_transition(note, mistake, p_note_to_mistake)
@@ -84,9 +79,10 @@ class Song:
             # compute transition probabilities
             otp = 1. / duration # out transition probability
             stp = self.p_correct - otp # self transition probability
-            # add transitions
             state = self.note_states[i]
+            # transitions: self transition
             self.hmm.add_transition(state, state, stp)
+            # transition: transition to next note
             if i < len(self.note_states)-1:
                 next_state = self.note_states[i+1]
                 self.hmm.add_transition(state, next_state, otp)
