@@ -4,6 +4,7 @@
 *.pkl
 *.h5
 *.json
+*.npy
 
 .DS_Store
 .#*
