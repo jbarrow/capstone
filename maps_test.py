@@ -39,7 +39,7 @@ s = Stairway(False)\
 models = []
 for i in range(6):
     print "Loading model {0}".format(i+1)
-    models.append(load_model('models/final/ensemble/uni_nm_s{0}_e20'.format(pow(17, i+1))))
+    models.append(load_model('models/ensemble/uni_nm_s{0}_e20'.format(pow(17, i+1))))
 
 while(True):
     file_name = raw_input("Enter a file name to test: ")

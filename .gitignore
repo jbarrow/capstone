@@ -2,8 +2,13 @@
 *.mid
 *.wav
 *.pkl
-*.h5
-*.json
+data*.h5
+maps*.h5
+timit.h5
+note_*.h5
+models/*.h5
+models/*.json
+models/final
 *.npy
 
 .DS_Store
