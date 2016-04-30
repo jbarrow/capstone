@@ -58,7 +58,6 @@ pyasn1==0.1.7
 pyasn1-modules==0.0.6
 pycapnp==0.5.5
 pycparser==2.12
-pygame==1.9.2a0
 Pygments==2.0.2
 PyMySQL==0.6.2
 pyOpenSSL==0.15.1

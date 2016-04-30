@@ -9,6 +9,20 @@ from pomegranate import *
 from itertools import groupby
 from operator import itemgetter
 
+class Note:
+
+    def __init__(self, note_order, note_index):
+        self.note_order = note_order
+        self.note_index = note_index
+
+    @staticmethod
+    def getNote(parameters):
+        return Note(parameters[0], parameters[1])
+
+    def __eq__(self, other):
+        return (self.note_order == other.note_order) and \
+               (self.note_index == other.note_index)
+
 class Song:
     
     # Constants
@@ -33,7 +47,7 @@ class Song:
     def add_note_states(self):
         for i, note in enumerate(self.notes):
             dist = DiscreteDistribution(dict(enumerate(self.note_prob[note])))
-            state = State(dist, name='{}: {}'.format(i, note))
+            state = State(dist, name='{}:{}'.format(i, note))
             self.hmm.add_state(state)
             self.note_states.append(state)
 
@@ -80,7 +94,7 @@ class Song:
             otp = 1. / duration # out transition probability
             stp = self.p_correct - otp # self transition probability
             state = self.note_states[i]
-            # transitions: self transition
+            # transition: self transition
             self.hmm.add_transition(state, state, stp)
             # transition: transition to next note
             if i < len(self.note_states)-1:
@@ -91,16 +105,22 @@ class Song:
         self.hmm.add_transition(self.note_states[-1], self.hmm.end, 1. / self.durations[-1])
 
     def play(self, predictions):
-        pred_indices = np.argmax(predictions, axis=1)
-        prob_path = self.hmm.predict_proba(pred_indices)
+        self.pred_indices = np.argmax(predictions, axis=1)
+        prob_path = self.hmm.predict_proba(self.pred_indices)
         self.state_index_path = np.argmax(prob_path, axis=1)
-        self.state_path = [self.hmm.states[i] for i in self.state_index_path]
+        self.state_path = [self.hmm.states[i] \
+            for i in self.state_index_path]
+        self.performance = [Note.getNote(map(int, state.name.split(':'))) \
+            for state in self.state_path]
+
+    def print_performance(self):
         print "HMM prediction ('state index: note index', count):"
-        state_list = [state.name for state in self.state_path]
-        state_sum = [(key, len(list(group))) for key, group in groupby(state_list)]
+        state_sum = [('{}:{}'.format(key.note_order, key.note_index), len(list(group))) \
+            for key, group in groupby(self.performance)]
         print "\t{}".format(state_sum)
         print "for RNN prediction (note, count):"
-        pred_sum = [(key, len(list(group))) for key, group in groupby(pred_indices)]
+        pred_sum = [(key, len(list(group))) \
+            for key, group in groupby(self.pred_indices)]
         print "\t{}".format(pred_sum)
 
 if __name__ == '__main__':
@@ -130,7 +150,8 @@ if __name__ == '__main__':
     print "Predicting with HMM..."
     note_distribution_file = 'note_distribution.h5'
     notes =     [39, 41, 43, 44, 46]
-    bad_notes = [39, 44, 46]
-    durations = [10., 10., 10., 10., 10., 10.]
+    bad_notes = [39, 41, 60, 70, 80, 41, 43, 47, 50, 56, 43, 44, 46]
+    durations = [10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10.]
     song = Song(bad_notes, durations, note_distribution_file)
     song.play(pred)
+    song.print_performance()
