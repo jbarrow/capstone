@@ -2,16 +2,6 @@
 
 Welcome to the senior design project of Joe Barrow and Harang Ju, 4th year CS majors at the University of Virginia. Our research is focused on the similarities between music and pronunciation training. This repository, written for Python 2.7, contains all our code, results, and our technical paper.
 
-## Getting started
-
-To download all the data and run the entire model, just type:
-
-```
-./build.sh
-```
-
-But __BEWARE__: this will take a _looooong_ time and a _loooooot_ of space.
-
 ### Installation
 
 System Requirements:
