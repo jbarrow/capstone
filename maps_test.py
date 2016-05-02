@@ -37,9 +37,9 @@ s = Stairway(False)\
     .step('stft', ['load_audio'], stft, 0.1, 0.0125)
 
 models = []
-for i in range(6):
+for i in range(7):
     print "Loading model {0}".format(i+1)
-    models.append(load_model('models/ensemble/uni_nm_s{0}_e20'.format(pow(17, i+1))))
+    models.append(load_model('models/ensemble/uni_nm_s{0}_e20'.format(pow(17, i))))
 
 while(True):
     file_name = raw_input("Enter a file name to test: ")

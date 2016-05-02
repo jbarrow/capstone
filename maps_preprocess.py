@@ -16,13 +16,19 @@ fs = 400
 
 def label(labels, data, hop_size):
     y = np.zeros((np.shape(data)[0], 89))
+    offset_index = 0
     for i, row in labels.iterrows():
-        onset_index = int(math.floor(row.OnsetTime / hop_size))
+        # for monophonic
+        onset_index = max(offset_index, int(math.floor(row.OnsetTime / hop_size)))
+        # for polyphonic
+        #onset_index = int(math.floor(row.OnsetTime / hop_size))
         offset_index = int(round(row.OffsetTime / hop_size))
         y[onset_index:offset_index, int(row.MidiPitch-21)] = 1.0
     for i, r in enumerate(y):
         if np.sum(r) < 0.5:
             y[i, 88] = 1.0
+        if np.sum(r) > 1.0:
+            print "Yipes."
     return y
 
 if __name__ == '__main__':
@@ -53,7 +59,7 @@ if __name__ == '__main__':
     
     files = r_load_pairs(rdir, exts=['.wav', '.txt'])
     
-    with h5py.File('maps_full_stft.h5', 'w') as hf:
+    with h5py.File('maps_full_fixed.h5', 'w') as hf:
         X = hf.create_dataset('X', (0, fs, 2206), maxshape=(None, fs, 2206), dtype='float32')
         y = hf.create_dataset('y', (0, fs, 89), maxshape=(None, fs, 89), dtype='float32')
 
@@ -68,5 +74,3 @@ if __name__ == '__main__':
                 X[cnt, :, :] = data[0][i]
                 y[cnt, :, :] = data[1][i]
                 cnt += 1
-
-#        X /= np.max(np.max(X, axis=0), axis=0)

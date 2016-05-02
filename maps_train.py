@@ -43,7 +43,8 @@ def model_factory():
         LSTM(
             input_dim=2206, output_dim=128,
             return_sequences=True, activation='tanh',
-            dropout_U=0.2, dropout_W=0.2, W_regularizer='l2'
+            dropout_U=0.2, dropout_W=0.2, W_regularizer='l2',
+            go_backwards=True
         )
     )
 
@@ -85,3 +86,4 @@ if __name__ == '__main__':
     model.save_weights('models/{0}_final.h5'.format(args.model_name), overwrite=True)
     
     data.close()
+ 
