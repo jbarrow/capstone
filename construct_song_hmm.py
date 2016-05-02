@@ -9,19 +9,50 @@ from pomegranate import *
 from itertools import groupby
 from operator import itemgetter
 
+class NoteType:
+    NONE = 0
+    CORRECT = 1
+    MISTAKE = 2
+
 class Note:
 
-    def __init__(self, note_order, note_index):
-        self.note_order = note_order
-        self.note_index = note_index
-
-    @staticmethod
-    def getNote(parameters):
-        return Note(parameters[0], parameters[1])
+    def __init__(self, order, index, note_type, duration=0):
+        self.order = order
+        self.index = index
+        self.type = note_type
+        self.duration = duration
 
     def __eq__(self, other):
-        return (self.note_order == other.note_order) and \
-               (self.note_index == other.note_index)
+        return (self.order == other.order) and \
+               (self.index == other.index)
+
+    # (order:index, duration)
+    def __repr__(self):
+        if self.type is NoteType.CORRECT:
+            return "({}:{}, {})".format(self.order, self.index, self.duration)
+        else:
+            return "M({}:{}, {})".format(self.order, self.index, self.duration)
+
+class MistakeType:
+    NONE = 0
+    DELETION = 1
+    INSERTION = 2
+    SUBSTITUTION = 3
+
+class Mistake:
+
+    def __init__(self, note, mistake_type):
+        self.note = note
+        self.type = mistake_type
+
+    def __repr__(self):
+        if self.type is MistakeType.DELETION:
+            return "DELETION: {}".format(self.note)
+        elif self.type is MistakeType.INSERTION:
+            return "INSERTION: {}".format(self.note)
+        elif self.type is MistakeType.SUBSTITUTION:
+            return "SUBSTITUTION: {}".format(self.note)
+        return "None mistake"
 
 class Song:
     
@@ -65,7 +96,7 @@ class Song:
         prob = np.delete(self.note_prob, notes_to_remove, axis=0)
         num_notes = prob.shape[0]
         distr = [DiscreteDistribution(dict(enumerate(prob[i]))) for i in range(num_notes)]
-        states = [State(distr[i], name='m_{}_{}'.format(note, notes[i])) for i in range(num_notes)]
+        states = [State(distr[i], name='m:{}:{}'.format(note, notes[i])) for i in range(num_notes)]
         return states
 
     def add_mistake_transitions(self):
@@ -108,20 +139,53 @@ class Song:
         self.pred_indices = np.argmax(predictions, axis=1)
         prob_path = self.hmm.predict_proba(self.pred_indices)
         self.state_index_path = np.argmax(prob_path, axis=1)
-        self.state_path = [self.hmm.states[i] \
-            for i in self.state_index_path]
-        self.performance = [Note.getNote(map(int, state.name.split(':'))) \
-            for state in self.state_path]
+        # self.state_path = [self.hmm.states[i] \
+        #     for i in self.state_index_path]
+        # self.performance = [state.name.split(':') \
+        #     for state in self.state_path]
+        self.state_path = [self.hmm.states[i] for i in self.state_index_path]
+        string_path = [state.name.split(':') for state in self.state_path]
+        grouped_string_path = [(i, len(list(g))) for i, g in groupby(string_path)]
+        self.performance = [Note(int(i[0][1]), int(i[0][2]), NoteType.MISTAKE, int(i[1])) \
+            if len(i[0]) > 2 else Note(int(i[0][0]), int(i[0][1]), NoteType.CORRECT, int(i[1])) \
+            for i in grouped_string_path]
+        self.print_performance()
 
     def print_performance(self):
-        print "HMM prediction ('state index: note index', count):"
-        state_sum = [('{}:{}'.format(key.note_order, key.note_index), len(list(group))) \
-            for key, group in groupby(self.performance)]
-        print "\t{}".format(state_sum)
-        print "for RNN prediction (note, count):"
+        print "\tHMM prediction ('state index: note index', count):"
+        # state_sum = ['{}:{}'.format(key, len(list(group))) \
+        #     for key, group in groupby(self.performance)]
+        # print "\t{}".format(state_sum)
+        print "\t{}".format(self.performance)
+        print "\tfor RNN prediction (note, count):"
         pred_sum = [(key, len(list(group))) \
             for key, group in groupby(self.pred_indices)]
         print "\t{}".format(pred_sum)
+
+    def detect_mistakes(self):
+        self.mistakes = []
+        last_index = 0
+        for i in range(len(self.performance)):
+            note = self.performance[i]
+            if note.duration is 1:
+                # substitution
+                if note.index is last_index:
+                    if i < len(self.performance)-1:
+                        next_note = self.performance[i+1]
+                        self.mistakes.append(Mistake(next_note, MistakeType.SUBSTITUTION))
+                else: # deletion
+                    self.mistakes.append(Mistake(note, MistakeType.DELETION))
+            # insertion
+            if note.type is NoteType.MISTAKE and i > 0:
+                prev_note = self.performance[i-1]
+                if prev_note.duration > 1:
+                    self.mistakes.append(Mistake(note, MistakeType.INSERTION))
+            last_index = note.index
+        self.print_mistakes()
+
+    def print_mistakes(self):
+        print "Mistakes:"
+        print "\t{}".format(self.mistakes)
 
 if __name__ == '__main__':
 
@@ -129,7 +193,7 @@ if __name__ == '__main__':
         model = model_from_json(open(f_base + '.json').read())
         model.load_weights(f_base + '.h5')
         return model
-    
+
     s = Stairway(False)\
         .step('load_audio', ['audio_file'], scipy.io.wavfile.read)\
         .step('stft', ['load_audio'], stft, 0.1, 0.025)
@@ -147,11 +211,64 @@ if __name__ == '__main__':
     pred = model.predict(d_train, batch_size=1)
     pred = np.squeeze(pred)
 
-    print "Predicting with HMM..."
+    print "Creating HMM..."
     note_distribution_file = 'note_distribution.h5'
-    notes =     [39, 41, 43, 44, 46]
-    bad_notes = [39, 41, 60, 70, 80, 41, 43, 47, 50, 56, 43, 44, 46]
-    durations = [10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10.]
-    song = Song(bad_notes, durations, note_distribution_file)
+    # correct performance
+    correct_notes = [39, 41, 43, 44, 46]
+    durations =     [10., 10., 10., 10., 10.]
+    song = Song(correct_notes, durations, note_distribution_file)
+    # insertion
+    label1 =        [39, 43, 44, 46]
+    durations1 =    [10., 10., 10., 10.]
+    song1 = Song(label1, durations1, note_distribution_file)
+    # double insertion
+    label2 =        [39, 44, 46]
+    durations2 =    [10., 10., 10.]
+    song2 = Song(label2, durations2, note_distribution_file)
+    # deletion
+    label3 =        [39, 41, 35, 43, 44, 46]
+    durations3 =    [10., 10., 10., 10., 10., 10.]
+    song3 = Song(label3, durations3, note_distribution_file)
+    # double deletion
+    label4 =        [39, 41, 35, 32, 43, 44, 46]
+    durations4 =    [10., 10., 10., 10., 10., 10., 10.]
+    song4 = Song(label4, durations4, note_distribution_file)
+    # substitution
+    label5 =        [39, 30, 43, 44, 46]
+    durations5 =    [10., 10., 10., 10., 10.]
+    song5 = Song(label5, durations5, note_distribution_file)
+    # double substitution
+    label6 =        [39, 30, 35, 44, 46]
+    durations6 =    [10., 10., 10., 10., 10.]
+    song6 = Song(label6, durations6, note_distribution_file)
+
+    print "Predicting with HMM..."
+    print "\nSong: {}".format(correct_notes)
+    print "Correct performance"
     song.play(pred)
-    song.print_performance()
+    song.detect_mistakes()
+    print "\nSong: {}".format(label1)
+    print "Insertion of note 41"
+    song1.play(pred)
+    song1.detect_mistakes()
+    print "\nSong: {}".format(label2)
+    print "Insertion of note 41 and 43"
+    song2.play(pred)
+    song2.detect_mistakes()
+    print "\nSong: {}".format(label3)
+    print "Deletion of note 35"
+    song3.play(pred)
+    song3.detect_mistakes()
+    print "\nSong: {}".format(label4)
+    print "Deletion of note 35 and 32"
+    song4.play(pred)
+    song4.detect_mistakes()
+    print "\nSong: {}".format(label5)
+    print "Substitution of note 41 by 30"
+    song5.play(pred)
+    song5.detect_mistakes()
+    print "\nSong: {}".format(label6)
+    print "Substitution of note 41 by 30 and 43 by 35"
+    song6.play(pred)
+    song6.detect_mistakes()
+
