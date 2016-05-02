@@ -170,7 +170,7 @@ class Song:
                 self.mistakes.append(Mistake(note, MistakeType.DELETION))
             if note.type is NoteType.MISTAKE:
                 self.mistakes.append(Mistake(note, MistakeType.INSERTION))
-            last_order = note.index
+            last_order = note.order
         self.print_mistakes()
 
     def print_mistakes(self):
