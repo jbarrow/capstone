@@ -37,7 +37,6 @@ class MistakeType:
     NONE = 0
     DELETION = 1
     INSERTION = 2
-    SUBSTITUTION = 3
 
 class Mistake:
 
@@ -164,23 +163,14 @@ class Song:
 
     def detect_mistakes(self):
         self.mistakes = []
-        last_index = 0
+        last_order = 0
         for i in range(len(self.performance)):
             note = self.performance[i]
-            if note.duration is 1:
-                # substitution
-                if note.index is last_index:
-                    if i < len(self.performance)-1:
-                        next_note = self.performance[i+1]
-                        self.mistakes.append(Mistake(next_note, MistakeType.SUBSTITUTION))
-                else: # deletion
-                    self.mistakes.append(Mistake(note, MistakeType.DELETION))
-            # insertion
-            if note.type is NoteType.MISTAKE and i > 0:
-                prev_note = self.performance[i-1]
-                if prev_note.duration > 1:
-                    self.mistakes.append(Mistake(note, MistakeType.INSERTION))
-            last_index = note.index
+            if note.duration is 1 and note.order is not last_order:
+                self.mistakes.append(Mistake(note, MistakeType.DELETION))
+            if note.type is NoteType.MISTAKE:
+                self.mistakes.append(Mistake(note, MistakeType.INSERTION))
+            last_order = note.index
         self.print_mistakes()
 
     def print_mistakes(self):
