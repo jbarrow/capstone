@@ -105,7 +105,7 @@ The ultimate goal of this project is to run in real time with microphone input.
 - [x] Loading training data
 - [x] Theano RNN
 - [x] Arbitrary Mistake HMM Model
-- [ ] Track progress with paper
+- [x] Track progress with paper
 
 ### MAPS
 - [x] Download specific files from MAPS, for consistency
