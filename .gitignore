@@ -28,3 +28,5 @@ venv/
 *.sty
 *.log
 *.bst
+*.bbl
+*.blg
