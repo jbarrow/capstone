@@ -37,6 +37,7 @@ matplotlib==1.5.1
 mkdocs==0.12.2
 mock==1.0.1
 nltk==3.0.5
+nsgt==0.17
 numexpr==2.5
 numpy==1.10.4
 nupic==0.3.4
@@ -47,6 +48,7 @@ pathspec==0.3.3
 pathtools==0.1.2
 picklable-itertools==0.1.1
 Pillow==3.1.1
+pomegranate==0.4.0
 prettytable==0.7.2
 progressbar2==3.6.0
 psutil==1.0.1
@@ -84,8 +86,9 @@ sphinx-autobuild==0.5.2
 sphinx-rtd-theme==0.1.8
 texttable==0.8.3
 tf==1.0.0
-Theano==0.8.0rc1
+Theano==0.8.2
 toolz==0.7.2
+toposort==1.4
 tornado==4.1
 Twisted==15.1.0
 unittest2==0.5.1
